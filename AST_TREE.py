@@ -248,7 +248,10 @@ class ASTGenerator:
             if errors:
                 print("Additional syntax errors detected:")
                 for error in errors:
-                    print(f"Error: {error['message']} at position {error['start_pos']}")
+                    # Fixed: Use attributes instead of dict access
+                    msg = getattr(error, 'message', 'Unknown error')
+                    pos = getattr(error, 'start_pos', 'Unknown position')
+                    print(f"Error: {msg} at position {pos}")
 
             return True
 
