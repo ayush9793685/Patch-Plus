@@ -1,0 +1,2161 @@
+{
+  "type": "Module",
+  "body": [
+    {
+      "type": "Import",
+      "names": [
+        {
+          "type": "alias",
+          "name": "sys",
+          "asname": null,
+          "lineno": 1,
+          "col_offset": 7,
+          "end_lineno": 1,
+          "end_col_offset": 10
+        }
+      ],
+      "lineno": 1,
+      "col_offset": 0,
+      "end_lineno": 1,
+      "end_col_offset": 10
+    },
+    {
+      "type": "Import",
+      "names": [
+        {
+          "type": "alias",
+          "name": "os",
+          "asname": null,
+          "lineno": 2,
+          "col_offset": 7,
+          "end_lineno": 2,
+          "end_col_offset": 9
+        }
+      ],
+      "lineno": 2,
+      "col_offset": 0,
+      "end_lineno": 2,
+      "end_col_offset": 9
+    },
+    {
+      "type": "Import",
+      "names": [
+        {
+          "type": "alias",
+          "name": "yaml",
+          "asname": null,
+          "lineno": 3,
+          "col_offset": 7,
+          "end_lineno": 3,
+          "end_col_offset": 11
+        }
+      ],
+      "lineno": 3,
+      "col_offset": 0,
+      "end_lineno": 3,
+      "end_col_offset": 11
+    },
+    {
+      "type": "Import",
+      "names": [
+        {
+          "type": "alias",
+          "name": "flask",
+          "asname": null,
+          "lineno": 4,
+          "col_offset": 7,
+          "end_lineno": 4,
+          "end_col_offset": 12
+        }
+      ],
+      "lineno": 4,
+      "col_offset": 0,
+      "end_lineno": 4,
+      "end_col_offset": 12
+    },
+    {
+      "type": "Assign",
+      "targets": [
+        {
+          "type": "Name",
+          "id": "app",
+          "ctx": {
+            "type": "Store"
+          },
+          "lineno": 6,
+          "col_offset": 0,
+          "end_lineno": 6,
+          "end_col_offset": 3
+        }
+      ],
+      "value": {
+        "type": "Call",
+        "func": {
+          "type": "Attribute",
+          "value": {
+            "type": "Name",
+            "id": "flask",
+            "ctx": {
+              "type": "Load"
+            },
+            "lineno": 6,
+            "col_offset": 6,
+            "end_lineno": 6,
+            "end_col_offset": 11
+          },
+          "attr": "Flask",
+          "ctx": {
+            "type": "Load"
+          },
+          "lineno": 6,
+          "col_offset": 6,
+          "end_lineno": 6,
+          "end_col_offset": 17
+        },
+        "args": [
+          {
+            "type": "Name",
+            "id": "__name__",
+            "ctx": {
+              "type": "Load"
+            },
+            "lineno": 6,
+            "col_offset": 18,
+            "end_lineno": 6,
+            "end_col_offset": 26
+          }
+        ],
+        "keywords": [],
+        "lineno": 6,
+        "col_offset": 6,
+        "end_lineno": 6,
+        "end_col_offset": 27
+      },
+      "type_comment": null,
+      "lineno": 6,
+      "col_offset": 0,
+      "end_lineno": 6,
+      "end_col_offset": 27
+    },
+    {
+      "type": "FunctionDef",
+      "name": "index",
+      "args": {
+        "type": "arguments",
+        "posonlyargs": [],
+        "args": [],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "body": [
+        {
+          "type": "Assign",
+          "targets": [
+            {
+              "type": "Name",
+              "id": "version",
+              "ctx": {
+                "type": "Store"
+              },
+              "lineno": 11,
+              "col_offset": 4,
+              "end_lineno": 11,
+              "end_col_offset": 11
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Attribute",
+              "value": {
+                "type": "Attribute",
+                "value": {
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Name",
+                    "id": "flask",
+                    "ctx": {
+                      "type": "Load"
+                    },
+                    "lineno": 11,
+                    "col_offset": 14,
+                    "end_lineno": 11,
+                    "end_col_offset": 19
+                  },
+                  "attr": "request",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 11,
+                  "col_offset": 14,
+                  "end_lineno": 11,
+                  "end_col_offset": 27
+                },
+                "attr": "args",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 11,
+                "col_offset": 14,
+                "end_lineno": 11,
+                "end_col_offset": 32
+              },
+              "attr": "get",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 11,
+              "col_offset": 14,
+              "end_lineno": 11,
+              "end_col_offset": 36
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "urllib_version",
+                "kind": null,
+                "lineno": 11,
+                "col_offset": 37,
+                "end_lineno": 11,
+                "end_col_offset": 53
+              }
+            ],
+            "keywords": [],
+            "lineno": 11,
+            "col_offset": 14,
+            "end_lineno": 11,
+            "end_col_offset": 54
+          },
+          "type_comment": null,
+          "lineno": 11,
+          "col_offset": 4,
+          "end_lineno": 11,
+          "end_col_offset": 54
+        },
+        {
+          "type": "Assign",
+          "targets": [
+            {
+              "type": "Name",
+              "id": "url",
+              "ctx": {
+                "type": "Store"
+              },
+              "lineno": 12,
+              "col_offset": 4,
+              "end_lineno": 12,
+              "end_col_offset": 7
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Attribute",
+              "value": {
+                "type": "Attribute",
+                "value": {
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Name",
+                    "id": "flask",
+                    "ctx": {
+                      "type": "Load"
+                    },
+                    "lineno": 12,
+                    "col_offset": 10,
+                    "end_lineno": 12,
+                    "end_col_offset": 15
+                  },
+                  "attr": "request",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 12,
+                  "col_offset": 10,
+                  "end_lineno": 12,
+                  "end_col_offset": 23
+                },
+                "attr": "args",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 12,
+                "col_offset": 10,
+                "end_lineno": 12,
+                "end_col_offset": 28
+              },
+              "attr": "get",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 12,
+              "col_offset": 10,
+              "end_lineno": 12,
+              "end_col_offset": 32
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "url",
+                "kind": null,
+                "lineno": 12,
+                "col_offset": 33,
+                "end_lineno": 12,
+                "end_col_offset": 38
+              }
+            ],
+            "keywords": [],
+            "lineno": 12,
+            "col_offset": 10,
+            "end_lineno": 12,
+            "end_col_offset": 39
+          },
+          "type_comment": null,
+          "lineno": 12,
+          "col_offset": 4,
+          "end_lineno": 12,
+          "end_col_offset": 39
+        },
+        {
+          "type": "Return",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "fetch_website",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 13,
+              "col_offset": 11,
+              "end_lineno": 13,
+              "end_col_offset": 24
+            },
+            "args": [
+              {
+                "type": "Name",
+                "id": "version",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 13,
+                "col_offset": 25,
+                "end_lineno": 13,
+                "end_col_offset": 32
+              },
+              {
+                "type": "Name",
+                "id": "url",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 13,
+                "col_offset": 34,
+                "end_lineno": 13,
+                "end_col_offset": 37
+              }
+            ],
+            "keywords": [],
+            "lineno": 13,
+            "col_offset": 11,
+            "end_lineno": 13,
+            "end_col_offset": 38
+          },
+          "lineno": 13,
+          "col_offset": 4,
+          "end_lineno": 13,
+          "end_col_offset": 38
+        }
+      ],
+      "decorator_list": [
+        {
+          "type": "Call",
+          "func": {
+            "type": "Attribute",
+            "value": {
+              "type": "Name",
+              "id": "app",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 9,
+              "col_offset": 1,
+              "end_lineno": 9,
+              "end_col_offset": 4
+            },
+            "attr": "route",
+            "ctx": {
+              "type": "Load"
+            },
+            "lineno": 9,
+            "col_offset": 1,
+            "end_lineno": 9,
+            "end_col_offset": 10
+          },
+          "args": [
+            {
+              "type": "Constant",
+              "value": "/",
+              "kind": null,
+              "lineno": 9,
+              "col_offset": 11,
+              "end_lineno": 9,
+              "end_col_offset": 14
+            }
+          ],
+          "keywords": [],
+          "lineno": 9,
+          "col_offset": 1,
+          "end_lineno": 9,
+          "end_col_offset": 15
+        }
+      ],
+      "returns": null,
+      "type_comment": null,
+      "type_params": [],
+      "lineno": 10,
+      "col_offset": 0,
+      "end_lineno": 13,
+      "end_col_offset": 38
+    },
+    {
+      "type": "Assign",
+      "targets": [
+        {
+          "type": "Name",
+          "id": "CONFIG",
+          "ctx": {
+            "type": "Store"
+          },
+          "lineno": 16,
+          "col_offset": 0,
+          "end_lineno": 16,
+          "end_col_offset": 6
+        }
+      ],
+      "value": {
+        "type": "Dict",
+        "keys": [
+          {
+            "type": "Constant",
+            "value": "API_KEY",
+            "kind": null,
+            "lineno": 16,
+            "col_offset": 10,
+            "end_lineno": 16,
+            "end_col_offset": 19
+          }
+        ],
+        "values": [
+          {
+            "type": "Constant",
+            "value": "771df488714111d39138eb60df756e6b",
+            "kind": null,
+            "lineno": 16,
+            "col_offset": 21,
+            "end_lineno": 16,
+            "end_col_offset": 55
+          }
+        ],
+        "lineno": 16,
+        "col_offset": 9,
+        "end_lineno": 16,
+        "end_col_offset": 56
+      },
+      "type_comment": null,
+      "lineno": 16,
+      "col_offset": 0,
+      "end_lineno": 16,
+      "end_col_offset": 56
+    },
+    {
+      "type": "ClassDef",
+      "name": "Person",
+      "bases": [
+        {
+          "type": "Name",
+          "id": "object",
+          "ctx": {
+            "type": "Load"
+          },
+          "lineno": 17,
+          "col_offset": 13,
+          "end_lineno": 17,
+          "end_col_offset": 19
+        }
+      ],
+      "keywords": [],
+      "body": [
+        {
+          "type": "FunctionDef",
+          "name": "__init__",
+          "args": {
+            "type": "arguments",
+            "posonlyargs": [],
+            "args": [
+              {
+                "type": "arg",
+                "arg": "self",
+                "annotation": null,
+                "type_comment": null,
+                "lineno": 18,
+                "col_offset": 17,
+                "end_lineno": 18,
+                "end_col_offset": 21
+              },
+              {
+                "type": "arg",
+                "arg": "name",
+                "annotation": null,
+                "type_comment": null,
+                "lineno": 18,
+                "col_offset": 23,
+                "end_lineno": 18,
+                "end_col_offset": 27
+              }
+            ],
+            "vararg": null,
+            "kwonlyargs": [],
+            "kw_defaults": [],
+            "kwarg": null,
+            "defaults": []
+          },
+          "body": [
+            {
+              "type": "Assign",
+              "targets": [
+                {
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Name",
+                    "id": "self",
+                    "ctx": {
+                      "type": "Load"
+                    },
+                    "lineno": 19,
+                    "col_offset": 8,
+                    "end_lineno": 19,
+                    "end_col_offset": 12
+                  },
+                  "attr": "name",
+                  "ctx": {
+                    "type": "Store"
+                  },
+                  "lineno": 19,
+                  "col_offset": 8,
+                  "end_lineno": 19,
+                  "end_col_offset": 17
+                }
+              ],
+              "value": {
+                "type": "Name",
+                "id": "name",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 19,
+                "col_offset": 20,
+                "end_lineno": 19,
+                "end_col_offset": 24
+              },
+              "type_comment": null,
+              "lineno": 19,
+              "col_offset": 8,
+              "end_lineno": 19,
+              "end_col_offset": 24
+            }
+          ],
+          "decorator_list": [],
+          "returns": null,
+          "type_comment": null,
+          "type_params": [],
+          "lineno": 18,
+          "col_offset": 4,
+          "end_lineno": 19,
+          "end_col_offset": 24
+        }
+      ],
+      "decorator_list": [],
+      "type_params": [],
+      "lineno": 17,
+      "col_offset": 0,
+      "end_lineno": 19,
+      "end_col_offset": 24
+    },
+    {
+      "type": "FunctionDef",
+      "name": "print_nametag",
+      "args": {
+        "type": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "type": "arg",
+            "arg": "format_string",
+            "annotation": null,
+            "type_comment": null,
+            "lineno": 21,
+            "col_offset": 18,
+            "end_lineno": 21,
+            "end_col_offset": 31
+          },
+          {
+            "type": "arg",
+            "arg": "person",
+            "annotation": null,
+            "type_comment": null,
+            "lineno": 21,
+            "col_offset": 33,
+            "end_lineno": 21,
+            "end_col_offset": 39
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "body": [
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "print",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 22,
+              "col_offset": 4,
+              "end_lineno": 22,
+              "end_col_offset": 9
+            },
+            "args": [
+              {
+                "type": "Call",
+                "func": {
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Name",
+                    "id": "format_string",
+                    "ctx": {
+                      "type": "Load"
+                    },
+                    "lineno": 22,
+                    "col_offset": 10,
+                    "end_lineno": 22,
+                    "end_col_offset": 23
+                  },
+                  "attr": "format",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 22,
+                  "col_offset": 10,
+                  "end_lineno": 22,
+                  "end_col_offset": 30
+                },
+                "args": [],
+                "keywords": [
+                  {
+                    "type": "keyword",
+                    "arg": "person",
+                    "value": {
+                      "type": "Name",
+                      "id": "person",
+                      "ctx": {
+                        "type": "Load"
+                      },
+                      "lineno": 22,
+                      "col_offset": 38,
+                      "end_lineno": 22,
+                      "end_col_offset": 44
+                    },
+                    "lineno": 22,
+                    "col_offset": 31,
+                    "end_lineno": 22,
+                    "end_col_offset": 44
+                  }
+                ],
+                "lineno": 22,
+                "col_offset": 10,
+                "end_lineno": 22,
+                "end_col_offset": 45
+              }
+            ],
+            "keywords": [],
+            "lineno": 22,
+            "col_offset": 4,
+            "end_lineno": 22,
+            "end_col_offset": 46
+          },
+          "lineno": 22,
+          "col_offset": 4,
+          "end_lineno": 22,
+          "end_col_offset": 46
+        }
+      ],
+      "decorator_list": [],
+      "returns": null,
+      "type_comment": null,
+      "type_params": [],
+      "lineno": 21,
+      "col_offset": 0,
+      "end_lineno": 22,
+      "end_col_offset": 46
+    },
+    {
+      "type": "FunctionDef",
+      "name": "fetch_website",
+      "args": {
+        "type": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "type": "arg",
+            "arg": "urllib_version",
+            "annotation": null,
+            "type_comment": null,
+            "lineno": 25,
+            "col_offset": 18,
+            "end_lineno": 25,
+            "end_col_offset": 32
+          },
+          {
+            "type": "arg",
+            "arg": "url",
+            "annotation": null,
+            "type_comment": null,
+            "lineno": 25,
+            "col_offset": 34,
+            "end_lineno": 25,
+            "end_col_offset": 37
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "body": [
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "exec",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 27,
+              "col_offset": 4,
+              "end_lineno": 27,
+              "end_col_offset": 8
+            },
+            "args": [
+              {
+                "type": "JoinedStr",
+                "values": [
+                  {
+                    "type": "Constant",
+                    "value": "import urllib",
+                    "kind": null,
+                    "lineno": 27,
+                    "col_offset": 11,
+                    "end_lineno": 27,
+                    "end_col_offset": 24
+                  },
+                  {
+                    "type": "FormattedValue",
+                    "value": {
+                      "type": "Name",
+                      "id": "urllib_version",
+                      "ctx": {
+                        "type": "Load"
+                      },
+                      "lineno": 27,
+                      "col_offset": 25,
+                      "end_lineno": 27,
+                      "end_col_offset": 39
+                    },
+                    "conversion": -1,
+                    "format_spec": null,
+                    "lineno": 27,
+                    "col_offset": 24,
+                    "end_lineno": 27,
+                    "end_col_offset": 40
+                  },
+                  {
+                    "type": "Constant",
+                    "value": " as urllib",
+                    "kind": null,
+                    "lineno": 27,
+                    "col_offset": 40,
+                    "end_lineno": 27,
+                    "end_col_offset": 50
+                  }
+                ],
+                "lineno": 27,
+                "col_offset": 9,
+                "end_lineno": 27,
+                "end_col_offset": 51
+              },
+              {
+                "type": "Call",
+                "func": {
+                  "type": "Name",
+                  "id": "globals",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 27,
+                  "col_offset": 53,
+                  "end_lineno": 27,
+                  "end_col_offset": 60
+                },
+                "args": [],
+                "keywords": [],
+                "lineno": 27,
+                "col_offset": 53,
+                "end_lineno": 27,
+                "end_col_offset": 62
+              }
+            ],
+            "keywords": [],
+            "lineno": 27,
+            "col_offset": 4,
+            "end_lineno": 27,
+            "end_col_offset": 63
+          },
+          "lineno": 27,
+          "col_offset": 4,
+          "end_lineno": 27,
+          "end_col_offset": 63
+        },
+        {
+          "type": "Try",
+          "body": [
+            {
+              "type": "Assign",
+              "targets": [
+                {
+                  "type": "Name",
+                  "id": "http",
+                  "ctx": {
+                    "type": "Store"
+                  },
+                  "lineno": 31,
+                  "col_offset": 8,
+                  "end_lineno": 31,
+                  "end_col_offset": 12
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "func": {
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Name",
+                    "id": "urllib",
+                    "ctx": {
+                      "type": "Load"
+                    },
+                    "lineno": 31,
+                    "col_offset": 15,
+                    "end_lineno": 31,
+                    "end_col_offset": 21
+                  },
+                  "attr": "PoolManager",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 31,
+                  "col_offset": 15,
+                  "end_lineno": 31,
+                  "end_col_offset": 33
+                },
+                "args": [],
+                "keywords": [],
+                "lineno": 31,
+                "col_offset": 15,
+                "end_lineno": 31,
+                "end_col_offset": 35
+              },
+              "type_comment": null,
+              "lineno": 31,
+              "col_offset": 8,
+              "end_lineno": 31,
+              "end_col_offset": 35
+            }
+          ],
+          "handlers": [
+            {
+              "type": null,
+              "name": null,
+              "body": [
+                {
+                  "type": "Expr",
+                  "value": {
+                    "type": "Call",
+                    "func": {
+                      "type": "Name",
+                      "id": "print",
+                      "ctx": {
+                        "type": "Load"
+                      },
+                      "lineno": 33,
+                      "col_offset": 8,
+                      "end_lineno": 33,
+                      "end_col_offset": 13
+                    },
+                    "args": [
+                      {
+                        "type": "Constant",
+                        "value": "Exception",
+                        "kind": null,
+                        "lineno": 33,
+                        "col_offset": 14,
+                        "end_lineno": 33,
+                        "end_col_offset": 25
+                      }
+                    ],
+                    "keywords": [],
+                    "lineno": 33,
+                    "col_offset": 8,
+                    "end_lineno": 33,
+                    "end_col_offset": 26
+                  },
+                  "lineno": 33,
+                  "col_offset": 8,
+                  "end_lineno": 33,
+                  "end_col_offset": 26
+                }
+              ],
+              "lineno": 32,
+              "col_offset": 4,
+              "end_lineno": 33,
+              "end_col_offset": 26
+            }
+          ],
+          "orelse": [],
+          "finalbody": [],
+          "lineno": 30,
+          "col_offset": 4,
+          "end_lineno": 33,
+          "end_col_offset": 26
+        }
+      ],
+      "decorator_list": [],
+      "returns": null,
+      "type_comment": null,
+      "type_params": [],
+      "lineno": 25,
+      "col_offset": 0,
+      "end_lineno": 33,
+      "end_col_offset": 26
+    },
+    {
+      "type": "FunctionDef",
+      "name": "load_yaml",
+      "args": {
+        "type": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "type": "arg",
+            "arg": "filename",
+            "annotation": null,
+            "type_comment": null,
+            "lineno": 36,
+            "col_offset": 14,
+            "end_lineno": 36,
+            "end_col_offset": 22
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "body": [
+        {
+          "type": "Assign",
+          "targets": [
+            {
+              "type": "Name",
+              "id": "stream",
+              "ctx": {
+                "type": "Store"
+              },
+              "lineno": 37,
+              "col_offset": 4,
+              "end_lineno": 37,
+              "end_col_offset": 10
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "open",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 37,
+              "col_offset": 13,
+              "end_lineno": 37,
+              "end_col_offset": 17
+            },
+            "args": [
+              {
+                "type": "Name",
+                "id": "filename",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 37,
+                "col_offset": 18,
+                "end_lineno": 37,
+                "end_col_offset": 26
+              }
+            ],
+            "keywords": [],
+            "lineno": 37,
+            "col_offset": 13,
+            "end_lineno": 37,
+            "end_col_offset": 27
+          },
+          "type_comment": null,
+          "lineno": 37,
+          "col_offset": 4,
+          "end_lineno": 37,
+          "end_col_offset": 27
+        },
+        {
+          "type": "Assign",
+          "targets": [
+            {
+              "type": "Name",
+              "id": "deserialized_data",
+              "ctx": {
+                "type": "Store"
+              },
+              "lineno": 38,
+              "col_offset": 4,
+              "end_lineno": 38,
+              "end_col_offset": 21
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Attribute",
+              "value": {
+                "type": "Name",
+                "id": "yaml",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 38,
+                "col_offset": 24,
+                "end_lineno": 38,
+                "end_col_offset": 28
+              },
+              "attr": "load",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 38,
+              "col_offset": 24,
+              "end_lineno": 38,
+              "end_col_offset": 33
+            },
+            "args": [
+              {
+                "type": "Name",
+                "id": "stream",
+                "ctx": {
+                  "type": "Load"
+                },
+                "lineno": 38,
+                "col_offset": 34,
+                "end_lineno": 38,
+                "end_col_offset": 40
+              }
+            ],
+            "keywords": [
+              {
+                "type": "keyword",
+                "arg": "Loader",
+                "value": {
+                  "type": "Attribute",
+                  "value": {
+                    "type": "Name",
+                    "id": "yaml",
+                    "ctx": {
+                      "type": "Load"
+                    },
+                    "lineno": 38,
+                    "col_offset": 49,
+                    "end_lineno": 38,
+                    "end_col_offset": 53
+                  },
+                  "attr": "Loader",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 38,
+                  "col_offset": 49,
+                  "end_lineno": 38,
+                  "end_col_offset": 60
+                },
+                "lineno": 38,
+                "col_offset": 42,
+                "end_lineno": 38,
+                "end_col_offset": 60
+              }
+            ],
+            "lineno": 38,
+            "col_offset": 24,
+            "end_lineno": 38,
+            "end_col_offset": 61
+          },
+          "type_comment": null,
+          "lineno": 38,
+          "col_offset": 4,
+          "end_lineno": 38,
+          "end_col_offset": 61
+        },
+        {
+          "type": "Return",
+          "value": {
+            "type": "Name",
+            "id": "deserialized_data",
+            "ctx": {
+              "type": "Load"
+            },
+            "lineno": 39,
+            "col_offset": 11,
+            "end_lineno": 39,
+            "end_col_offset": 28
+          },
+          "lineno": 39,
+          "col_offset": 4,
+          "end_lineno": 39,
+          "end_col_offset": 28
+        }
+      ],
+      "decorator_list": [],
+      "returns": null,
+      "type_comment": null,
+      "type_params": [],
+      "lineno": 36,
+      "col_offset": 0,
+      "end_lineno": 39,
+      "end_col_offset": 28
+    },
+    {
+      "type": "FunctionDef",
+      "name": "authenticate",
+      "args": {
+        "type": "arguments",
+        "posonlyargs": [],
+        "args": [
+          {
+            "type": "arg",
+            "arg": "password",
+            "annotation": null,
+            "type_comment": null,
+            "lineno": 41,
+            "col_offset": 17,
+            "end_lineno": 41,
+            "end_col_offset": 25
+          }
+        ],
+        "vararg": null,
+        "kwonlyargs": [],
+        "kw_defaults": [],
+        "kwarg": null,
+        "defaults": []
+      },
+      "body": [
+        {
+          "type": "Assert",
+          "test": {
+            "type": "Compare",
+            "left": {
+              "type": "Name",
+              "id": "password",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 43,
+              "col_offset": 11,
+              "end_lineno": 43,
+              "end_col_offset": 19
+            },
+            "ops": [
+              {
+                "type": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "type": "Constant",
+                "value": "Iloveyou",
+                "kind": null,
+                "lineno": 43,
+                "col_offset": 23,
+                "end_lineno": 43,
+                "end_col_offset": 33
+              }
+            ],
+            "lineno": 43,
+            "col_offset": 11,
+            "end_lineno": 43,
+            "end_col_offset": 33
+          },
+          "msg": {
+            "type": "Constant",
+            "value": "Invalid password!",
+            "kind": null,
+            "lineno": 43,
+            "col_offset": 35,
+            "end_lineno": 43,
+            "end_col_offset": 54
+          },
+          "lineno": 43,
+          "col_offset": 4,
+          "end_lineno": 43,
+          "end_col_offset": 54
+        },
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "print",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 44,
+              "col_offset": 4,
+              "end_lineno": 44,
+              "end_col_offset": 9
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "Successfully authenticated!",
+                "kind": null,
+                "lineno": 44,
+                "col_offset": 10,
+                "end_lineno": 44,
+                "end_col_offset": 39
+              }
+            ],
+            "keywords": [],
+            "lineno": 44,
+            "col_offset": 4,
+            "end_lineno": 44,
+            "end_col_offset": 40
+          },
+          "lineno": 44,
+          "col_offset": 4,
+          "end_lineno": 44,
+          "end_col_offset": 40
+        }
+      ],
+      "decorator_list": [],
+      "returns": null,
+      "type_comment": null,
+      "type_params": [],
+      "lineno": 41,
+      "col_offset": 0,
+      "end_lineno": 44,
+      "end_col_offset": 40
+    },
+    {
+      "type": "If",
+      "test": {
+        "type": "Compare",
+        "left": {
+          "type": "Name",
+          "id": "__name__",
+          "ctx": {
+            "type": "Load"
+          },
+          "lineno": 46,
+          "col_offset": 3,
+          "end_lineno": 46,
+          "end_col_offset": 11
+        },
+        "ops": [
+          {
+            "type": "Eq"
+          }
+        ],
+        "comparators": [
+          {
+            "type": "Constant",
+            "value": "__main__",
+            "kind": null,
+            "lineno": 46,
+            "col_offset": 15,
+            "end_lineno": 46,
+            "end_col_offset": 25
+          }
+        ],
+        "lineno": 46,
+        "col_offset": 3,
+        "end_lineno": 46,
+        "end_col_offset": 25
+      },
+      "body": [
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "print",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 47,
+              "col_offset": 4,
+              "end_lineno": 47,
+              "end_col_offset": 9
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "Vulnerabilities:",
+                "kind": null,
+                "lineno": 47,
+                "col_offset": 10,
+                "end_lineno": 47,
+                "end_col_offset": 28
+              }
+            ],
+            "keywords": [],
+            "lineno": 47,
+            "col_offset": 4,
+            "end_lineno": 47,
+            "end_col_offset": 29
+          },
+          "lineno": 47,
+          "col_offset": 4,
+          "end_lineno": 47,
+          "end_col_offset": 29
+        },
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "print",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 48,
+              "col_offset": 4,
+              "end_lineno": 48,
+              "end_col_offset": 9
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "1. Format string vulnerability:",
+                "kind": null,
+                "lineno": 48,
+                "col_offset": 10,
+                "end_lineno": 48,
+                "end_col_offset": 43
+              }
+            ],
+            "keywords": [],
+            "lineno": 48,
+            "col_offset": 4,
+            "end_lineno": 48,
+            "end_col_offset": 44
+          },
+          "lineno": 48,
+          "col_offset": 4,
+          "end_lineno": 48,
+          "end_col_offset": 44
+        },
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "print",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 49,
+              "col_offset": 4,
+              "end_lineno": 49,
+              "end_col_offset": 9
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "2. Code injection vulnerability:",
+                "kind": null,
+                "lineno": 49,
+                "col_offset": 10,
+                "end_lineno": 49,
+                "end_col_offset": 44
+              }
+            ],
+            "keywords": [],
+            "lineno": 49,
+            "col_offset": 4,
+            "end_lineno": 49,
+            "end_col_offset": 45
+          },
+          "lineno": 49,
+          "col_offset": 4,
+          "end_lineno": 49,
+          "end_col_offset": 45
+        },
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "print",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 50,
+              "col_offset": 4,
+              "end_lineno": 50,
+              "end_col_offset": 9
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "3. Yaml deserialization vulnerability:",
+                "kind": null,
+                "lineno": 50,
+                "col_offset": 10,
+                "end_lineno": 50,
+                "end_col_offset": 50
+              }
+            ],
+            "keywords": [],
+            "lineno": 50,
+            "col_offset": 4,
+            "end_lineno": 50,
+            "end_col_offset": 51
+          },
+          "lineno": 50,
+          "col_offset": 4,
+          "end_lineno": 50,
+          "end_col_offset": 51
+        },
+        {
+          "type": "Expr",
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "print",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 51,
+              "col_offset": 4,
+              "end_lineno": 51,
+              "end_col_offset": 9
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "4. Use of assert statements vulnerability:",
+                "kind": null,
+                "lineno": 51,
+                "col_offset": 10,
+                "end_lineno": 51,
+                "end_col_offset": 54
+              }
+            ],
+            "keywords": [],
+            "lineno": 51,
+            "col_offset": 4,
+            "end_lineno": 51,
+            "end_col_offset": 55
+          },
+          "lineno": 51,
+          "col_offset": 4,
+          "end_lineno": 51,
+          "end_col_offset": 55
+        },
+        {
+          "type": "Assign",
+          "targets": [
+            {
+              "type": "Name",
+              "id": "choice",
+              "ctx": {
+                "type": "Store"
+              },
+              "lineno": 52,
+              "col_offset": 4,
+              "end_lineno": 52,
+              "end_col_offset": 10
+            }
+          ],
+          "value": {
+            "type": "Call",
+            "func": {
+              "type": "Name",
+              "id": "input",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 52,
+              "col_offset": 14,
+              "end_lineno": 52,
+              "end_col_offset": 19
+            },
+            "args": [
+              {
+                "type": "Constant",
+                "value": "Select vulnerability: ",
+                "kind": null,
+                "lineno": 52,
+                "col_offset": 20,
+                "end_lineno": 52,
+                "end_col_offset": 44
+              }
+            ],
+            "keywords": [],
+            "lineno": 52,
+            "col_offset": 14,
+            "end_lineno": 52,
+            "end_col_offset": 45
+          },
+          "type_comment": null,
+          "lineno": 52,
+          "col_offset": 4,
+          "end_lineno": 52,
+          "end_col_offset": 45
+        },
+        {
+          "type": "If",
+          "test": {
+            "type": "Compare",
+            "left": {
+              "type": "Name",
+              "id": "choice",
+              "ctx": {
+                "type": "Load"
+              },
+              "lineno": 53,
+              "col_offset": 7,
+              "end_lineno": 53,
+              "end_col_offset": 13
+            },
+            "ops": [
+              {
+                "type": "Eq"
+              }
+            ],
+            "comparators": [
+              {
+                "type": "Constant",
+                "value": "1",
+                "kind": null,
+                "lineno": 53,
+                "col_offset": 17,
+                "end_lineno": 53,
+                "end_col_offset": 20
+              }
+            ],
+            "lineno": 53,
+            "col_offset": 7,
+            "end_lineno": 53,
+            "end_col_offset": 20
+          },
+          "body": [
+            {
+              "type": "Assign",
+              "targets": [
+                {
+                  "type": "Name",
+                  "id": "new_person",
+                  "ctx": {
+                    "type": "Store"
+                  },
+                  "lineno": 54,
+                  "col_offset": 8,
+                  "end_lineno": 54,
+                  "end_col_offset": 18
+                }
+              ],
+              "value": {
+                "type": "Call",
+                "func": {
+                  "type": "Name",
+                  "id": "Person",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 54,
+                  "col_offset": 21,
+                  "end_lineno": 54,
+                  "end_col_offset": 27
+                },
+                "args": [
+                  {
+                    "type": "Constant",
+                    "value": "Vickie",
+                    "kind": null,
+                    "lineno": 54,
+                    "col_offset": 28,
+                    "end_lineno": 54,
+                    "end_col_offset": 36
+                  }
+                ],
+                "keywords": [],
+                "lineno": 54,
+                "col_offset": 21,
+                "end_lineno": 54,
+                "end_col_offset": 37
+              },
+              "type_comment": null,
+              "lineno": 54,
+              "col_offset": 8,
+              "end_lineno": 54,
+              "end_col_offset": 37
+            },
+            {
+              "type": "Expr",
+              "value": {
+                "type": "Call",
+                "func": {
+                  "type": "Name",
+                  "id": "print_nametag",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 55,
+                  "col_offset": 8,
+                  "end_lineno": 55,
+                  "end_col_offset": 21
+                },
+                "args": [
+                  {
+                    "type": "Call",
+                    "func": {
+                      "type": "Name",
+                      "id": "input",
+                      "ctx": {
+                        "type": "Load"
+                      },
+                      "lineno": 55,
+                      "col_offset": 22,
+                      "end_lineno": 55,
+                      "end_col_offset": 27
+                    },
+                    "args": [
+                      {
+                        "type": "Constant",
+                        "value": "Please format your nametag: ",
+                        "kind": null,
+                        "lineno": 55,
+                        "col_offset": 28,
+                        "end_lineno": 55,
+                        "end_col_offset": 58
+                      }
+                    ],
+                    "keywords": [],
+                    "lineno": 55,
+                    "col_offset": 22,
+                    "end_lineno": 55,
+                    "end_col_offset": 59
+                  },
+                  {
+                    "type": "Name",
+                    "id": "new_person",
+                    "ctx": {
+                      "type": "Load"
+                    },
+                    "lineno": 55,
+                    "col_offset": 61,
+                    "end_lineno": 55,
+                    "end_col_offset": 71
+                  }
+                ],
+                "keywords": [],
+                "lineno": 55,
+                "col_offset": 8,
+                "end_lineno": 55,
+                "end_col_offset": 72
+              },
+              "lineno": 55,
+              "col_offset": 8,
+              "end_lineno": 55,
+              "end_col_offset": 72
+            }
+          ],
+          "orelse": [
+            {
+              "type": "If",
+              "test": {
+                "type": "Compare",
+                "left": {
+                  "type": "Name",
+                  "id": "choice",
+                  "ctx": {
+                    "type": "Load"
+                  },
+                  "lineno": 56,
+                  "col_offset": 9,
+                  "end_lineno": 56,
+                  "end_col_offset": 15
+                },
+                "ops": [
+                  {
+                    "type": "Eq"
+                  }
+                ],
+                "comparators": [
+                  {
+                    "type": "Constant",
+                    "value": "2",
+                    "kind": null,
+                    "lineno": 56,
+                    "col_offset": 19,
+                    "end_lineno": 56,
+                    "end_col_offset": 22
+                  }
+                ],
+                "lineno": 56,
+                "col_offset": 9,
+                "end_lineno": 56,
+                "end_col_offset": 22
+              },
+              "body": [
+                {
+                  "type": "Assign",
+                  "targets": [
+                    {
+                      "type": "Name",
+                      "id": "urlib_version",
+                      "ctx": {
+                        "type": "Store"
+                      },
+                      "lineno": 57,
+                      "col_offset": 8,
+                      "end_lineno": 57,
+                      "end_col_offset": 21
+                    }
+                  ],
+                  "value": {
+                    "type": "Call",
+                    "func": {
+                      "type": "Name",
+                      "id": "input",
+                      "ctx": {
+                        "type": "Load"
+                      },
+                      "lineno": 57,
+                      "col_offset": 24,
+                      "end_lineno": 57,
+                      "end_col_offset": 29
+                    },
+                    "args": [
+                      {
+                        "type": "Constant",
+                        "value": "Choose version of urllib: ",
+                        "kind": null,
+                        "lineno": 57,
+                        "col_offset": 30,
+                        "end_lineno": 57,
+                        "end_col_offset": 58
+                      }
+                    ],
+                    "keywords": [],
+                    "lineno": 57,
+                    "col_offset": 24,
+                    "end_lineno": 57,
+                    "end_col_offset": 59
+                  },
+                  "type_comment": null,
+                  "lineno": 57,
+                  "col_offset": 8,
+                  "end_lineno": 57,
+                  "end_col_offset": 59
+                },
+                {
+                  "type": "Expr",
+                  "value": {
+                    "type": "Call",
+                    "func": {
+                      "type": "Name",
+                      "id": "fetch_website",
+                      "ctx": {
+                        "type": "Load"
+                      },
+                      "lineno": 58,
+                      "col_offset": 8,
+                      "end_lineno": 58,
+                      "end_col_offset": 21
+                    },
+                    "args": [
+                      {
+                        "type": "Name",
+                        "id": "urlib_version",
+                        "ctx": {
+                          "type": "Load"
+                        },
+                        "lineno": 58,
+                        "col_offset": 22,
+                        "end_lineno": 58,
+                        "end_col_offset": 35
+                      }
+                    ],
+                    "keywords": [
+                      {
+                        "type": "keyword",
+                        "arg": "url",
+                        "value": {
+                          "type": "Constant",
+                          "value": "https://www.google.com",
+                          "kind": null,
+                          "lineno": 58,
+                          "col_offset": 41,
+                          "end_lineno": 58,
+                          "end_col_offset": 65
+                        },
+                        "lineno": 58,
+                        "col_offset": 37,
+                        "end_lineno": 58,
+                        "end_col_offset": 65
+                      }
+                    ],
+                    "lineno": 58,
+                    "col_offset": 8,
+                    "end_lineno": 58,
+                    "end_col_offset": 66
+                  },
+                  "lineno": 58,
+                  "col_offset": 8,
+                  "end_lineno": 58,
+                  "end_col_offset": 66
+                }
+              ],
+              "orelse": [
+                {
+                  "type": "If",
+                  "test": {
+                    "type": "Compare",
+                    "left": {
+                      "type": "Name",
+                      "id": "choice",
+                      "ctx": {
+                        "type": "Load"
+                      },
+                      "lineno": 59,
+                      "col_offset": 9,
+                      "end_lineno": 59,
+                      "end_col_offset": 15
+                    },
+                    "ops": [
+                      {
+                        "type": "Eq"
+                      }
+                    ],
+                    "comparators": [
+                      {
+                        "type": "Constant",
+                        "value": "3",
+                        "kind": null,
+                        "lineno": 59,
+                        "col_offset": 19,
+                        "end_lineno": 59,
+                        "end_col_offset": 22
+                      }
+                    ],
+                    "lineno": 59,
+                    "col_offset": 9,
+                    "end_lineno": 59,
+                    "end_col_offset": 22
+                  },
+                  "body": [
+                    {
+                      "type": "Expr",
+                      "value": {
+                        "type": "Call",
+                        "func": {
+                          "type": "Name",
+                          "id": "load_yaml",
+                          "ctx": {
+                            "type": "Load"
+                          },
+                          "lineno": 60,
+                          "col_offset": 8,
+                          "end_lineno": 60,
+                          "end_col_offset": 17
+                        },
+                        "args": [
+                          {
+                            "type": "Call",
+                            "func": {
+                              "type": "Name",
+                              "id": "input",
+                              "ctx": {
+                                "type": "Load"
+                              },
+                              "lineno": 60,
+                              "col_offset": 18,
+                              "end_lineno": 60,
+                              "end_col_offset": 23
+                            },
+                            "args": [
+                              {
+                                "type": "Constant",
+                                "value": "File name: ",
+                                "kind": null,
+                                "lineno": 60,
+                                "col_offset": 24,
+                                "end_lineno": 60,
+                                "end_col_offset": 37
+                              }
+                            ],
+                            "keywords": [],
+                            "lineno": 60,
+                            "col_offset": 18,
+                            "end_lineno": 60,
+                            "end_col_offset": 38
+                          }
+                        ],
+                        "keywords": [],
+                        "lineno": 60,
+                        "col_offset": 8,
+                        "end_lineno": 60,
+                        "end_col_offset": 39
+                      },
+                      "lineno": 60,
+                      "col_offset": 8,
+                      "end_lineno": 60,
+                      "end_col_offset": 39
+                    },
+                    {
+                      "type": "Expr",
+                      "value": {
+                        "type": "Call",
+                        "func": {
+                          "type": "Name",
+                          "id": "print",
+                          "ctx": {
+                            "type": "Load"
+                          },
+                          "lineno": 61,
+                          "col_offset": 8,
+                          "end_lineno": 61,
+                          "end_col_offset": 13
+                        },
+                        "args": [
+                          {
+                            "type": "Constant",
+                            "value": "Executed -ls on current folder",
+                            "kind": null,
+                            "lineno": 61,
+                            "col_offset": 14,
+                            "end_lineno": 61,
+                            "end_col_offset": 46
+                          }
+                        ],
+                        "keywords": [],
+                        "lineno": 61,
+                        "col_offset": 8,
+                        "end_lineno": 61,
+                        "end_col_offset": 47
+                      },
+                      "lineno": 61,
+                      "col_offset": 8,
+                      "end_lineno": 61,
+                      "end_col_offset": 47
+                    }
+                  ],
+                  "orelse": [
+                    {
+                      "type": "If",
+                      "test": {
+                        "type": "Compare",
+                        "left": {
+                          "type": "Name",
+                          "id": "choice",
+                          "ctx": {
+                            "type": "Load"
+                          },
+                          "lineno": 62,
+                          "col_offset": 9,
+                          "end_lineno": 62,
+                          "end_col_offset": 15
+                        },
+                        "ops": [
+                          {
+                            "type": "Eq"
+                          }
+                        ],
+                        "comparators": [
+                          {
+                            "type": "Constant",
+                            "value": "4",
+                            "kind": null,
+                            "lineno": 62,
+                            "col_offset": 19,
+                            "end_lineno": 62,
+                            "end_col_offset": 22
+                          }
+                        ],
+                        "lineno": 62,
+                        "col_offset": 9,
+                        "end_lineno": 62,
+                        "end_col_offset": 22
+                      },
+                      "body": [
+                        {
+                          "type": "Assign",
+                          "targets": [
+                            {
+                              "type": "Name",
+                              "id": "password",
+                              "ctx": {
+                                "type": "Store"
+                              },
+                              "lineno": 63,
+                              "col_offset": 8,
+                              "end_lineno": 63,
+                              "end_col_offset": 16
+                            }
+                          ],
+                          "value": {
+                            "type": "Call",
+                            "func": {
+                              "type": "Name",
+                              "id": "input",
+                              "ctx": {
+                                "type": "Load"
+                              },
+                              "lineno": 63,
+                              "col_offset": 19,
+                              "end_lineno": 63,
+                              "end_col_offset": 24
+                            },
+                            "args": [
+                              {
+                                "type": "Constant",
+                                "value": "Enter master password: ",
+                                "kind": null,
+                                "lineno": 63,
+                                "col_offset": 25,
+                                "end_lineno": 63,
+                                "end_col_offset": 50
+                              }
+                            ],
+                            "keywords": [],
+                            "lineno": 63,
+                            "col_offset": 19,
+                            "end_lineno": 63,
+                            "end_col_offset": 51
+                          },
+                          "type_comment": null,
+                          "lineno": 63,
+                          "col_offset": 8,
+                          "end_lineno": 63,
+                          "end_col_offset": 51
+                        },
+                        {
+                          "type": "Expr",
+                          "value": {
+                            "type": "Call",
+                            "func": {
+                              "type": "Name",
+                              "id": "authenticate",
+                              "ctx": {
+                                "type": "Load"
+                              },
+                              "lineno": 64,
+                              "col_offset": 8,
+                              "end_lineno": 64,
+                              "end_col_offset": 20
+                            },
+                            "args": [
+                              {
+                                "type": "Name",
+                                "id": "password",
+                                "ctx": {
+                                  "type": "Load"
+                                },
+                                "lineno": 64,
+                                "col_offset": 21,
+                                "end_lineno": 64,
+                                "end_col_offset": 29
+                              }
+                            ],
+                            "keywords": [],
+                            "lineno": 64,
+                            "col_offset": 8,
+                            "end_lineno": 64,
+                            "end_col_offset": 30
+                          },
+                          "lineno": 64,
+                          "col_offset": 8,
+                          "end_lineno": 64,
+                          "end_col_offset": 30
+                        }
+                      ],
+                      "orelse": [],
+                      "lineno": 62,
+                      "col_offset": 4,
+                      "end_lineno": 64,
+                      "end_col_offset": 30
+                    }
+                  ],
+                  "lineno": 59,
+                  "col_offset": 4,
+                  "end_lineno": 64,
+                  "end_col_offset": 30
+                }
+              ],
+              "lineno": 56,
+              "col_offset": 4,
+              "end_lineno": 64,
+              "end_col_offset": 30
+            }
+          ],
+          "lineno": 53,
+          "col_offset": 4,
+          "end_lineno": 64,
+          "end_col_offset": 30
+        }
+      ],
+      "orelse": [],
+      "lineno": 46,
+      "col_offset": 0,
+      "end_lineno": 64,
+      "end_col_offset": 30
+    }
+  ],
+  "type_ignores": []
+}
