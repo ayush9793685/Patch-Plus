@@ -8,11 +8,8 @@ from io import StringIO
 from contextlib import redirect_stdout
 from difflib import SequenceMatcher  # Added for line change calculation (proxy for ∆Lk)
 from AST_TREE import ASTGenerator
-from llama_handler import query_and_parse_json as query_llama_json
-from claude_handler import query_and_parse_json_claude as query_claude_json
-from gemini_handler import query_and_parse_json_gemini
-from Perplexity_handler import query_and_parse_json_perplexity  # Standalone call
-
+from logic_checker import LogicChecker  # Import for logical checking after error fixes
+from model_handler import query_all_models
 generator = ASTGenerator()
 
 # No initial config; all handled on-the-fly in query_all_models
@@ -53,7 +50,9 @@ def parse_error(error_output: str, line_num: int) -> tuple[str | None, str | Non
     error_type = error_type_match.group(1) if error_type_match else "Exception"
     return error_type, error_output.strip()
 
-def call_ast_generator(file_path: str, line_num: int, output_path: str) -> tuple[bool, str, str | None]:
+def call_ast_generator(file_path: str, line_num: int) -> tuple[bool, str]:
+    output_path = os.path.join(os.path.dirname(file_path), "ast_output.json")
+
     """Call ASTGenerator directly and capture its printed output for context."""
     try:
         # Capture stdout from generate_ast
@@ -114,71 +113,30 @@ Output Format (JSON only):
   "impact": "Minimal",
   "confidence": 0.95  // Float 0-1
 }}"""
-
-def query_all_models(prompt: str) -> dict:
-    """Query all models and return responses (always attempts all, on-the-fly config if needed)."""
-    responses = {}
-    
-    # LLaMA
-    try:
-        from llama_handler import query_and_parse_json as query_llama_json
-        responses['llama'] = query_llama_json(prompt)
-    except Exception as e:
-        responses['llama'] = {"error": f"LLaMA query failed: {str(e)}"}
-    
-    # Claude
-    try:
-        from claude_handler import query_and_parse_json_claude as query_claude_json
-        responses['claude'] = query_claude_json(prompt)
-    except Exception as e:
-        responses['claude'] = {"error": f"Claude query failed: {str(e)}"}
-    
-    # Gemini - standalone call (auto-configures)
-    try:
-        responses['gemini'] = query_and_parse_json_gemini(prompt)
-    except Exception as e:
-        responses['gemini'] = {"error": f"Gemini query failed: {str(e)}"}
-    
-    # Perplexity - standalone call (auto-configures)
-    try:
-        responses['perplexity'] = query_and_parse_json_perplexity(prompt)
-    except Exception as e:
-        responses['perplexity'] = {"error": f"Perplexity query failed: {str(e)}"}
-    
-    # Validate: Check for duplicates
-    if len(set(responses.keys())) != len(responses):
-        print("Warning: Duplicate keys detected in responses; sanitizing...")
-        responses = dict(copy.deepcopy(responses))
-    
-    return responses
-
 def compute_consensus(responses: dict, problematic_line: str) -> dict:
     """Compute consensus using Patch Selection Equation (multi-objective optimization)."""
     # Deep copy to prevent mutation
     responses_copy = copy.deepcopy(responses)
     
-    valid_responses = {k: v for k, v in responses_copy.items() if 'error' not in v and 'fixed_code' in v}
+    valid_responses = {k: v for k, v in responses_copy.items() if 'error' not in v}
     if not valid_responses:
-        return {"error": "No valid patch candidates", "responses": responses_copy, "original_code": problematic_line}
+        return {"error": "No valid responses", "responses": responses_copy, "original_code": problematic_line}
     
     # Extract candidates: ˆyk = fixed_code, x = problematic_line
-    candidates = [(model, resp['fixed_code']) for model, resp in valid_responses.items()]
+    candidates = [(model, resp['fixed_code']) for model, resp in valid_responses.items() if 'fixed_code' in resp and resp['fixed_code'] != problematic_line]
+    if not candidates:
+        candidates = [( 'no_fix', problematic_line )]  # Fallback
     
-    # Compute ∆Lk for each (number of lines changed, using difflib ratio inverted for "change")
+    # Compute ∆Lk for each (lines changed proxy)
     delta_L = []
+    orig_lines = problematic_line.splitlines()
     for _, fixed_code in candidates:
-        # Split lines for comparison
-        orig_lines = problematic_line.splitlines()
         fix_lines = fixed_code.splitlines()
-        # Use SequenceMatcher ratio (1 - similarity = change proxy); multiply by len for "lines changed"
         similarity = SequenceMatcher(None, problematic_line, fixed_code).ratio()
-        change_proxy = (1 - similarity) * max(len(orig_lines), len(fix_lines))  # Normalized change
+        change_proxy = (1 - similarity) * max(len(orig_lines), len(fix_lines))
         delta_L.append(change_proxy)
     
-    if not delta_L:
-        return {"error": "No valid deltas", "responses": responses_copy, "original_code": problematic_line}
-    
-    max_delta_L = max(delta_L)
+    max_delta_L = max(delta_L) if delta_L else 1
     
     # Compute S_func (functionality similarity proxy via difflib ratio [0,1])
     s_func_scores = [SequenceMatcher(None, problematic_line, fixed_code).ratio() for _, fixed_code in candidates]
@@ -210,57 +168,109 @@ def compute_consensus(responses: dict, problematic_line: str) -> dict:
     
     return consensus
 
+
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python error_runner.py <path_to_python_file>")
         sys.exit(1)
 
-    file_path = sys.argv[1]
-    if not os.path.isfile(file_path) or not file_path.endswith('.py'):
-        print(f"Error: '{file_path}' is not a valid Python file.")
+    original_file = sys.argv[1]
+    if not os.path.isfile(original_file) or not original_file.endswith('.py'):
+        print(f"Error: '{original_file}' is not a valid Python file.")
         sys.exit(1)
 
-    output_path = os.path.join(os.path.dirname(file_path), "ast_output.json")
+    # Fixed: Use absolute path for temp_file
+    temp_file = os.path.join(os.path.abspath(os.path.dirname(original_file)), "temp_fixed.py")
+    fixed_file = "fixed_" + os.path.basename(original_file)
+    max_iterations = 5 # Prevent infinite loops
+    iteration = 0
+    has_issues = True  # Start assuming issues
+
+    # Copy original to temp for looping
+    with open(original_file, 'r') as f:
+        code = f.read()
+    with open(temp_file, 'w') as f:
+        f.write(code)
+
+    logic_checker = LogicChecker()
+    print("path:", os.path.abspath(temp_file))
+    while has_issues and iteration < max_iterations:
+        iteration += 1
+        print(f"\nIteration {iteration}: Checking {temp_file}")
+
+        # Run and fix errors
+        success, error_output, line_num = run_code(temp_file)
+        if not success:
+            error_type, error_msg = parse_error(error_output, line_num)
+            if not error_type:
+                print("Could not parse error details.")
+                break
+
+            print(f"\nError Type: {error_type}")
+            print(f"Error Message: {error_msg}")
+            print(f"Line Number: {line_num}")
+
+            ast_success, problematic_line, def_block = call_ast_generator(temp_file, line_num)
+            if ast_success:
+                print(f"\nProblematic line: {problematic_line}")
+                if def_block:
+                    print(f"\nEnclosing def: \n{def_block}")
+                
+                # Build and query all models for error fix
+                prompt = build_fix_prompt(error_type, error_msg, line_num, problematic_line, def_block, temp_file)
+                print("\nQuerying multi-LLM for error fix...")
+                responses = query_all_models(prompt)
+                consensus = compute_consensus(responses, problematic_line)
+                
+                print("\nMulti-LLM Consensus for Error Fix (JSON):")
+                print(json.dumps(consensus, indent=2))
+                
+                # Apply the best patch to the problematic line
+                if "consensus_fixed_code" in consensus:
+                    with open(temp_file, 'r') as f:
+                        lines = f.readlines()
+                    # Assume problematic_line is on line_num; replace it
+                    lines[line_num - 1] = consensus['consensus_fixed_code'] + '\n'
+                    with open(temp_file, 'w') as f:
+                        f.write(''.join(lines))
+                    print(f"Applied error fix to {temp_file}")
+                else:
+                    print("No fix generated; breaking loop.")
+                    break
+            else:
+                print("Failed to analyze error with AST.")
+                break
+        else:
+            # No errors; move to logic check
+            print("\nNo runtime errors; starting logical check...")
+            logic_result = logic_checker.full_logic_check(temp_file)
+            
+            print("\nLogic Check Results (JSON):")
+            print(json.dumps(logic_result, indent=2))
+            
+            # Check if logic issues remain (re_check_issues not empty or flagged_nodes > 0)
+            has_logic_issues = len(logic_result.get('flagged_nodes', [])) > 0 or len(logic_result.get('re_check_issues', [])) > 0
+            if has_logic_issues:
+                # Apply logic fixes
+                fixed_code = logic_result.get('fixed_code', temp_file)
+                with open(temp_file, 'w') as f:
+                    f.write(fixed_code)
+                print(f"Applied logic fixes to {temp_file}")
+            else:
+                has_issues = False  # No more issues; exit loop
+                print("No logic issues found; final code ready.")
+
+    # Save final fixed code
+    with open(temp_file, 'r') as f:
+        final_code = f.read()
+    with open(fixed_file, 'w') as f:
+        f.write(final_code)
+    print(f"\nFinal fixed code saved to: {fixed_file}")
     
-    success, error_output, line_num = run_code(file_path)
-    if success:
-        sys.exit(0)
-
-    error_type, error_msg = parse_error(error_output, line_num)
-    if not error_type:
-        print("Could not parse error details.")
-        sys.exit(1)
-
-    print(f"\nError Type: {error_type}")
-    print(f"Error Message: {error_msg}")
-    print(f"Line Number: {line_num}")
-
-    ast_success, problematic_line, def_block = call_ast_generator(file_path, line_num, output_path)
-    if ast_success:
-        print(f"\nProblematic line: {problematic_line}")
-        if def_block:
-            print(f"\nEnclosing def: \n{def_block}")
-        
-        # Build and query all models
-        prompt = build_fix_prompt(error_type, error_msg, line_num, problematic_line, def_block, file_path)
-        print("\nQuerying multi-LLM for consensus fix...")
-        responses = query_all_models(prompt)
-        consensus = compute_consensus(responses, problematic_line)  # Pass problematic_line
-        
-        print("\nMulti-LLM Consensus (JSON):")
-        print(json.dumps(consensus, indent=2))
-        
-        # Save
-        fix_path = os.path.join(os.path.dirname(file_path), "multi_fix_output.json")
-        with open(fix_path, 'w') as f:
-            json.dump(consensus, f, indent=2)
-        print(f"\nConsensus fix saved to: {fix_path}")
-        
-        # Apply preview (safe now)
-        if "error" not in consensus:
-            print(f"\nRecommended Patch: Replace '{consensus['original_code']}' with '{consensus['consensus_fixed_code']}'")
-    else:
-        print("Failed to analyze error with AST.")
+    # Clean up temp
+    os.remove(temp_file)
 
 if __name__ == "__main__":
     main()

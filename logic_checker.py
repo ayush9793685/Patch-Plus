@@ -11,6 +11,7 @@ from llama_handler import query_and_parse_json as query_llama
 from claude_handler import query_and_parse_json_claude as query_claude
 from gemini_handler import query_and_parse_json_gemini as query_gemini
 from Perplexity_handler import query_and_parse_json_perplexity as query_perplexity
+from model_handler import query_all_models
 
 # MongoDB setup (local default; change URI for prod)
 MONGO_URI = "mongodb://localhost:27017/"
@@ -103,12 +104,7 @@ Output JSON only:
 }}"""
 
         # Query all models (your handlers are standalone)
-        model_responses = {
-            'llama': query_llama(prompt),
-            'claude': query_claude(prompt),
-            'gemini': query_gemini(prompt),
-            'perplexity': query_perplexity(prompt)
-        }
+        model_responses = query_all_models(prompt)
 
         # Extract candidate fixes (P = {ˆy1, ˆy2, ...}) - only unique non-original fixes
         node.candidate_fixes = list(set([
