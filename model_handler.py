@@ -3,6 +3,8 @@ from llama_handler import query_and_parse_json as query_llama_json
 from claude_handler import query_and_parse_json_claude as query_claude_json
 from gemini_handler import query_and_parse_json_gemini
 from Perplexity_handler import query_and_parse_json_perplexity
+from chatgpt_handler import query_and_parse_json as query_openai_json
+from grok_handler import query_and_parse_json as query_x_json
 
 
 def query_all_models(prompt: str) -> dict:
@@ -14,6 +16,16 @@ def query_all_models(prompt: str) -> dict:
         responses['llama'] = query_llama_json(prompt)
     except Exception as e:
         responses['llama'] = {"error": f"LLaMA query failed: {str(e)}"}
+    
+    try:
+        responses['Open AI'] = query_openai_json(prompt)
+    except Exception as e:
+        responses['Open AI'] = {"error": f"Open AI query failed: {str(e)}"}
+    
+    try:
+        responses['GROK'] = query_x_json(prompt)
+    except Exception as e:
+        responses['GROK'] = {"error": f"X query failed: {str(e)}"}
     
     # Claude
     try:
