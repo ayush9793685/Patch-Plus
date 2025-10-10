@@ -3,6 +3,7 @@ import sys
 import re
 import json
 import traceback
+import ast
 import copy  # Added for deepcopy to prevent dict mutation/duplication
 from io import StringIO
 from contextlib import redirect_stdout
@@ -113,7 +114,13 @@ Output Format (JSON only):
   "impact": "Minimal",
   "confidence": 0.95  // Float 0-1
 }}"""
-def compute_consensus(responses: dict, problematic_line: str) -> dict:
+def compute_consensus(responses: dict, problematic_line: str,exclude_model) -> dict:
+    responses_copy = copy.deepcopy(responses)
+    
+    valid_responses = {k: v for k, v in responses_copy.items() if 'error' not in v}
+
+    if exclude_model:
+        valid_responses = {k: v for k, v in valid_responses.items() if k != exclude_model}
     """Compute consensus using Patch Selection Equation (multi-objective optimization)."""
     # Deep copy to prevent mutation
     responses_copy = copy.deepcopy(responses)
@@ -169,6 +176,47 @@ def compute_consensus(responses: dict, problematic_line: str) -> dict:
     return consensus
 
 
+def auto_fix_indent(temp_file: str, line_num: int, def_block: str | None, consensus_fixed_code: str) -> bool:
+    """Auto-shift indentation on problematic line using AST context, test until parses."""
+    if not def_block:
+        print("No def_block for indent fix; skipping.")
+        return False
+    
+    # Get base indent from def_block (first indented line's spaces)
+    lines = def_block.splitlines()
+    base_indent = 0
+    for line in lines[1:]:  # Skip 'def line'
+        if line.strip():
+            base_indent = len(line) - len(line.lstrip())
+            break
+    
+    print(f"Base indent from def: {base_indent} spaces")
+    
+    # Try indent variants (+0, +4, +8, -4)
+    variants = [0, 4, 8, -4]
+    for shift in variants:
+        new_indent = max(0, base_indent + shift)
+        indented_fix = ' ' * new_indent + consensus_fixed_code.rstrip() + '\n'
+        
+        # Test: Replace in temp, parse with ast.parse
+        with open(temp_file, 'r') as f:
+            full_lines = f.readlines()
+        full_lines[line_num - 1] = indented_fix
+        test_code = ''.join(full_lines)
+        
+        try:
+            ast.parse(test_code)  # Quick syntax check
+            # If parses, apply and return success
+            with open(temp_file, 'w') as f:
+                f.write(test_code)
+            print(f"Auto-fixed indent with {new_indent} spaces (shift +{shift}).")
+            return True
+        except SyntaxError:
+            continue  # Try next shift
+    
+    print("Auto-indent failed after tries; keeping original.")
+    return False
+
 
 
 def main():
@@ -184,9 +232,10 @@ def main():
     # Fixed: Use absolute path for temp_file
     temp_file = os.path.join(os.path.abspath(os.path.dirname(original_file)), "temp_fixed.py")
     fixed_file = "fixed_" + os.path.basename(original_file)
-    max_iterations = 5 # Prevent infinite loops
+    max_iterations = 20  # Increased for longer loops
     iteration = 0
     has_issues = True  # Start assuming issues
+    error_history = []  # Track last 2 errors for repetition detection
 
     # Copy original to temp for looping
     with open(original_file, 'r') as f:
@@ -222,7 +271,15 @@ def main():
                 prompt = build_fix_prompt(error_type, error_msg, line_num, problematic_line, def_block, temp_file)
                 print("\nQuerying multi-LLM for error fix...")
                 responses = query_all_models(prompt)
-                consensus = compute_consensus(responses, problematic_line)
+                exclude_model = None
+                if len(error_history) >= 1:
+                    curr_key = f"{error_msg} | {problematic_line}"
+                    for hist_key, _, _, hist_model in error_history:
+                        if SequenceMatcher(None, curr_key, hist_key).ratio() > 0.9:
+                            exclude_model = hist_model
+                            print(f"Repeating error detected; excluding model: {exclude_model}")
+                            break
+                consensus = compute_consensus(responses, problematic_line,exclude_model)
                 
                 print("\nMulti-LLM Consensus for Error Fix (JSON):")
                 print(json.dumps(consensus, indent=2))
@@ -236,6 +293,17 @@ def main():
                     with open(temp_file, 'w') as f:
                         f.write(''.join(lines))
                     print(f"Applied error fix to {temp_file}")
+                    
+                    # New: Auto-fix indentation if IndentationError
+                    if 'indent' in error_msg.lower() or 'return outside function' in error_msg.lower():
+                        if auto_fix_indent(temp_file, line_num, def_block, consensus['consensus_fixed_code']):
+                            print("Indentation auto-fixed.")
+
+                    # Add to history for repetition check
+                    error_key = f"{error_msg} | {problematic_line}"
+                    error_history.append((error_key, line_num, problematic_line, consensus.get('best_model', 'unknown')))
+                    if len(error_history) > 2:
+                        error_history = error_history[-2:]  # Keep last 2
                 else:
                     print("No fix generated; breaking loop.")
                     break
@@ -272,5 +340,7 @@ def main():
     # Clean up temp
     os.remove(temp_file)
 
+
 if __name__ == "__main__":
     main()
+
