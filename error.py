@@ -5,6 +5,8 @@ import json
 import traceback
 import ast
 import copy  # Added for deepcopy to prevent dict mutation/duplication
+import textwrap  # Added for dedent
+import parso  # Added for partial parsing on syntax errors
 from io import StringIO
 from contextlib import redirect_stdout
 from difflib import SequenceMatcher  # Added for line change calculation (proxy for ∆Lk)
@@ -51,7 +53,7 @@ def parse_error(error_output: str, line_num: int) -> tuple[str | None, str | Non
     error_type = error_type_match.group(1) if error_type_match else "Exception"
     return error_type, error_output.strip()
 
-def call_ast_generator(file_path: str, line_num: int) -> tuple[bool, str]:
+def call_ast_generator(file_path: str, line_num: int) -> tuple[bool, str, str | None]:
     output_path = os.path.join(os.path.dirname(file_path), "ast_output.json")
 
     """Call ASTGenerator directly and capture its printed output for context."""
@@ -66,11 +68,12 @@ def call_ast_generator(file_path: str, line_num: int) -> tuple[bool, str]:
             print("AST generation and error analysis successful.")
             print(captured_output)  # Re-print for user
             
-            # Parse captured output
-            lines = captured_output.splitlines()
-            problematic_line = next((line.split(':', 1)[1].strip() for line in lines if line.startswith("Problematic line: ")), "Not found")
-            def_lines = [line for line in lines if "Enclosing def:" in line or (line.strip().startswith("    ") and any("def" in l for l in lines))]
-            def_block = "\n".join(def_lines).replace("Enclosing def: \n", "") if def_lines else None
+            # Directly use get_code_context for reliable extraction
+            problematic_line, def_block = generator.get_code_context(file_path, line_num)
+            print(f"\nProblematic line: {problematic_line}")
+            if def_block:
+                print(f"\nEnclosing def: \n{def_block}")
+            
             return True, problematic_line, def_block
         else:
             print("Error in AST generation.")
@@ -284,16 +287,126 @@ def main():
                 print("\nMulti-LLM Consensus for Error Fix (JSON):")
                 print(json.dumps(consensus, indent=2))
                 
-                # Apply the best patch to the problematic line
+                # Apply the best patch to the problematic line using AST edit
                 if "consensus_fixed_code" in consensus:
-                    with open(temp_file, 'r') as f:
-                        lines = f.readlines()
-                    # Assume problematic_line is on line_num; replace it
-                    lines[line_num - 1] = consensus['consensus_fixed_code'] + '\n'
-                    with open(temp_file, 'w') as f:
-                        f.write(''.join(lines))
-                    print(f"Applied error fix to {temp_file}")
-                    
+                    consensus_fixed_code = consensus['consensus_fixed_code']
+                    # Dedent the fixed code to make it parsable as a standalone statement
+                    fixed_dedent = textwrap.dedent(consensus_fixed_code.lstrip())
+                    # Hack for control statements: add dummy body if ends with :
+                    if fixed_dedent.strip().endswith(':'):
+                        fixed_dedent += '\n    pass'
+                    fixed_node = None
+                    try:
+                        # Use parso for parsing fixed code to handle incomplete statements (e.g., for without body)
+                        grammar = parso.load_grammar()
+                        fixed_p = grammar.parse(fixed_dedent)
+                        fixed_stmt_p = fixed_p.children[0] if fixed_p.children else None
+                        print("Successfully parsed fixed code with parso.")
+                    except Exception as e:
+                        print(f"Failed to parse fixed code with parso: {e}")
+                        # Fallback to ast.parse (may fail for incomplete)
+                        try:
+                            fixed_tree = ast.parse(fixed_dedent)
+                            fixed_node = fixed_tree.body[0] if fixed_tree.body else None
+                        except SyntaxError as e2:
+                            print(f"Failed to parse fixed code with ast: {e2}")
+                            fixed_node = None
+
+                    if fixed_node is None:
+                        # Fallback to string replacement if fixed code can't be parsed
+                        with open(temp_file, 'r') as f:
+                            lines = f.readlines()
+                        lines[line_num - 1] = consensus_fixed_code + '\n'
+                        with open(temp_file, 'w') as f:
+                            f.write(''.join(lines))
+                        print(f"Applied fallback string fix to {temp_file}")
+                    else:
+                        # Attempt AST/parso-based fix
+                        print("Attempting AST-based fix...")
+                        with open(temp_file, 'r') as f:
+                            code = f.read()
+                        use_parso = False
+                        tree = None
+                        try:
+                            tree = ast.parse(code)
+                        except SyntaxError:
+                            use_parso = True
+                            grammar = parso.load_grammar()
+                            tree = grammar.parse(code)
+
+                        if not use_parso:
+                            # Use ast NodeTransformer to replace the node
+                            class Replacer(ast.NodeTransformer):
+                                def __init__(self, target_lineno, new_node):
+                                    self.target_lineno = target_lineno
+                                    self.new_node = new_node
+
+                                def generic_visit(self, node):
+                                    node = super().generic_visit(node)
+                                    if hasattr(node, 'lineno') and node.lineno == self.target_lineno:
+                                        ast.copy_location(self.new_node, node)
+                                        return self.new_node
+                                    return node
+
+                            replacer = Replacer(line_num, fixed_node)
+                            new_tree = replacer.visit(tree)
+                            ast.fix_missing_locations(new_tree)
+                            new_code = ast.unparse(new_tree)
+                            with open(temp_file, 'w') as f:
+                                f.write(new_code)
+                            print(f"Applied AST-based fix to {temp_file}")
+                        else:
+                            # Use parso for replacement on syntax-invalid code
+                            position = (line_num - 1, 0)  # 0-based line
+                            leaf = tree.get_leaf_for_position(position, include_prefixes=True)
+                            if leaf:
+                                stmt = leaf
+                                # Climb to the nearest statement node
+                                while stmt and stmt.type not in ('simple_stmt', 'expr_stmt', 'return_stmt', 'for_stmt', 'if_stmt', 'while_stmt', 'assign_stmt', 'annassign', 'augassign'):
+                                    stmt = stmt.parent
+                                if stmt:
+                                    fixed_p = grammar.parse(fixed_dedent, error_recovery=False)
+                                    fixed_stmt_p = fixed_p.children[0] if fixed_p.children else None
+                                    if fixed_stmt_p:
+                                        # Preserve original indentation(prefix)
+                                        prefix = stmt.get_first_leaf().prefix
+                                        fixed_first_leaf = fixed_stmt_p.get_first_leaf()
+                                        fixed_first_leaf.prefix = prefix
+                                        # Replace in parent
+                                        parent = stmt.parent
+                                        if parent and hasattr(parent, 'children'):
+                                            idx = parent.children.index(stmt)
+                                            parent.children[idx] = fixed_stmt_p
+                                            fixed_stmt_p.parent = parent
+                                        new_code = tree.get_code()
+                                        with open(temp_file, 'w') as f:
+                                            f.write(new_code)
+                                        print(f"Applied parso-based fix to {temp_file}")
+                                    else:
+                                        print("Failed to parse fixed stmt with parso; fallback to string fix.")
+                                        with open(temp_file, 'r') as f:
+                                            lines = f.readlines()
+                                        lines[line_num - 1] = consensus_fixed_code + '\n'
+                                        with open(temp_file, 'w') as f:
+                                            f.write(''.join(lines))
+                                        print(f"Applied fallback string fix to {temp_file}")
+                                else:
+                                    print("Could not find statement node; fallback to string fix.")
+                                    with open(temp_file, 'r') as f:
+                                        lines = f.readlines()
+                                    lines[line_num - 1] = consensus_fixed_code + '\n'
+                                    with open(temp_file, 'w') as f:
+                                        f.write(''.join(lines))
+                                    print(f"Applied fallback string fix to {temp_file}")
+                            else:
+                                print("Could not find leaf; fallback to string fix.")
+                                with open(temp_file, 'r') as f:
+                                    lines = f.readlines()
+                                lines[line_num - 1] = consensus_fixed_code + '\n'
+                                with open(temp_file, 'w') as f:
+                                    f.write(''.join(lines))
+                                print(f"Applied fallback string fix to {temp_file}")
+
                     # New: Auto-fix indentation if IndentationError
                     if 'indent' in error_msg.lower() or 'return outside function' in error_msg.lower():
                         if auto_fix_indent(temp_file, line_num, def_block, consensus['consensus_fixed_code']):
@@ -343,4 +456,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
