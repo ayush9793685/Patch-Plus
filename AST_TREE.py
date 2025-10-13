@@ -10,6 +10,7 @@ class ASTGenerator:
         self.language = None
         self.parser = None 
         self.lines = None
+        self.is_parso = False  # Flag for parso tree usage
 
     def detect_language(self, file_path: str) -> str:
         """Detect the programming language based on file extension."""
@@ -74,60 +75,56 @@ class ASTGenerator:
         
         if hasattr(node, '__dict__'):
             for key, value in node.__dict__.items():
+                if key == 'parent':  # Skip circular recursion
+                    continue
                 if isinstance(value, list):
-                    result[key] = [self.node_to_dict(item) for item in value]
+                    result[key] = [self.node_to_dict(item) for item in value if item is not None]
                 elif isinstance(value, (str, int, float, bool, type(None))):
                     result[key] = value
-                else:
+                elif value is not None:
                     result[key] = self.node_to_dict(value)
         
-        if self.language == 'python':
+        if isinstance(node, ast.AST):
             if hasattr(node, '_fields'):
                 for field in node._fields:
-                    value = getattr(node, field)
-                    if isinstance(value, list):
-                        result[field] = [self.node_to_dict(item) for item in value]
-                    else:
-                        result[field] = self.node_to_dict(value)
-            elif hasattr(node, 'type') and hasattr(node, 'children'):
-                result['type'] = node.type
-                result['children'] = [self.node_to_dict(child) for child in node.children if child]
-                result['start_pos'] = node.start_pos
-                result['end_pos'] = node.end_pos if hasattr(node, 'end_pos') else None
-        
-        elif self.language == 'javascript' and hasattr(node, 'type'):
-            result.update({k: self.node_to_dict(v) for k, v in node.__dict__.items()})
-            
-        elif self.language == 'java' and hasattr(node, 'attrs'):
-            for attr in node.attrs:
-                value = getattr(node, attr)
-                result[attr] = [self.node_to_dict(item) for item in value] if isinstance(value, list) else self.node_to_dict(value)
-                
-        elif self.language in ('c', 'cpp') and hasattr(node, 'children'):
-            result['children'] = [self.node_to_dict(child) for child in node.children()]
-            
-        elif self.language == 'xml' and hasattr(node, 'tag'):
-            result['tag'] = node.tag
-            result['attrib'] = node.attrib
-            result['children'] = [self.node_to_dict(child) for child in node]
-            
+                    value = getattr(node, field, None)
+                    if value is not None:
+                        if isinstance(value, list):
+                            result[field] = [self.node_to_dict(item) for item in value if item is not None]
+                        else:
+                            result[field] = self.node_to_dict(value)
+        else:
+            if hasattr(node, 'type') and hasattr(node, 'children'):
+                result['type'] = getattr(node, 'type', None)
+                result['children'] = [self.node_to_dict(child) for child in getattr(node, 'children', []) if child is not None]
+                if hasattr(node, 'start_pos'):
+                    result['start_pos'] = node.start_pos
+                if hasattr(node, 'end_pos'):
+                    result['end_pos'] = node.end_pos
+                if hasattr(node, 'value'):
+                    result['value'] = node.value
         return result
 
     def find_node_at_line(self, tree, target_line: int) -> Optional[Dict]:
-        """Find the AST node at the specified line number."""
+        """Find the AST node at the specified line number (innermost preferred)."""
         def visit(node, target_line: int) -> Optional[Dict]:
+            if self.is_parso:
+                children_iter = getattr(node, 'children', [])
+            else:
+                children_iter = ast.iter_child_nodes(node)
+            for child in children_iter:
+                if child is not None:
+                    found = visit(child, target_line)
+                    if found:
+                        return found
             if hasattr(node, 'lineno') and node.lineno <= target_line <= (getattr(node, 'end_lineno', node.lineno)):
                 node_dict = self.node_to_dict(node)
                 node_dict['line_range'] = (node.lineno, getattr(node, 'end_lineno', node.lineno))
                 return node_dict
-            elif hasattr(node, 'start_pos') and node.start_pos[0] <= target_line <= (node.end_pos[0] if hasattr(node, 'end_pos') else target_line):
+            elif hasattr(node, 'start_pos') and node.start_pos[0] <= target_line <= (getattr(node, 'end_pos', (target_line, 0))[0]):
                 node_dict = self.node_to_dict(node)
-                node_dict['line_range'] = (node.start_pos[0], node.end_pos[0] if hasattr(node, 'end_pos') else node.start_pos[0])
+                node_dict['line_range'] = (node.start_pos[0], getattr(node, 'end_pos', node.start_pos)[0])
                 return node_dict
-            for child in getattr(node, 'children', ast.iter_child_nodes(node)):
-                found = visit(child, target_line)
-                if found:
-                    return found
             return None
         return visit(tree, target_line)
 
@@ -135,7 +132,7 @@ class ASTGenerator:
         """Get the problematic line and enclosing def statement."""
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
-                self.lines = file.read().splitlines()
+                self.lines = file.readlines()
         except Exception as e:
             print(f"Error reading file: {str(e)}")
             return "Error reading file", None
@@ -143,31 +140,86 @@ class ASTGenerator:
         if not self.lines or line_num < 1 or line_num > len(self.lines):
             return "Invalid line number.", None
 
-        problematic_line = self.lines[line_num - 1].strip()
+        problematic_line = self.lines[line_num - 1].rstrip('\n')
         current_def = None
         def_start = None
         def_block = []
         current_indent = None
 
         for i in range(line_num - 1, -1, -1):
-            line = self.lines[i].strip()
-            if line.startswith('def '):
-                current_def = line
+            line = self.lines[i].rstrip('\n')
+            stripped = line.strip()
+            if stripped.startswith('def '):
+                current_def = stripped
                 def_start = i + 1
-                current_indent = len(self.lines[i]) - len(self.lines[i].lstrip())
-                def_block = [self.lines[i]]
+                current_indent = len(line) - len(line.lstrip())
+                def_block = [line]
                 break
 
         if def_start:
             for i in range(def_start, line_num):
-                line_indent = len(self.lines[i]) - len(self.lines[i].lstrip())
+                line = self.lines[i].rstrip('\n')
+                line_indent = len(line) - len(line.lstrip())
                 if line_indent > current_indent:
-                    def_block.append(self.lines[i])
+                    def_block.append(line)
             full_def = '\n'.join(def_block)
         else:
             full_def = None
 
-        return problematic_line, full_def
+        return problematic_line.strip(), full_def
+
+    # ---------------------------
+    # NEW: AST to code converter
+    # ---------------------------
+    def ast_to_code(self, node: Dict, indent: int = 0) -> List[str]:
+        """Recreate source code lines from AST dict with indentation."""
+        lines = []
+        t = node.get("type")
+
+        if t == "file_input":
+            for child in node.get("children", []):
+                lines.extend(self.ast_to_code(child, indent))
+
+        elif t == "funcdef":
+            # Preserve raw def line (as-is)
+            def_line = "def " + "".join(
+                child.get("value", "") if "value" in child else ""
+                for child in node.get("children", []) if child["type"] != "suite"
+            )
+            lines.append(" " * indent + def_line)
+            for child in node.get("children", []):
+                if child["type"] == "suite":
+                    lines.extend(self.ast_to_code(child, indent + 4))
+
+        elif t in ("for_stmt", "if_stmt"):
+            parts = []
+            for child in node.get("children", []):
+                if "value" in child:
+                    parts.append(child["value"])
+                elif child["type"] == "Keyword":
+                    parts.append(child.get("value", ""))
+            line = " ".join(p for p in parts if p) + ":"
+            lines.append(" " * indent + line)
+            for child in node.get("children", []):
+                if child["type"] == "suite":
+                    lines.extend(self.ast_to_code(child, indent + 4))
+
+        elif t in ("simple_stmt", "expr_stmt", "return_stmt"):
+            code = []
+            def flatten(n):
+                if "value" in n:
+                    code.append(n["value"])
+                for c in n.get("children", []):
+                    flatten(c)
+            flatten(node)
+            if code:
+                lines.append(" " * indent + "".join(code))
+
+        elif t == "suite":
+            for child in node.get("children", []):
+                lines.extend(self.ast_to_code(child, indent))
+
+        return lines
 
     def generate_ast(self, file_path: str, output_path: str, error_line: int) -> bool:
         """Generate AST for the given file and analyze the error line."""
@@ -187,13 +239,15 @@ class ASTGenerator:
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
-                self.lines = content.splitlines()
+                self.lines = content.splitlines(keepends=True)
 
             errors = []
             tree = None
+            self.is_parso = False
             if self.language == 'python':
                 try:
                     tree = self.parser(content)
+                    self.is_parso = False
                 except SyntaxError as e:
                     print(f"SyntaxError from ast: {str(e)} at line {e.lineno}")
                     try:
@@ -203,8 +257,9 @@ class ASTGenerator:
                         errors = list(grammar.iter_errors(tree))
                         for error in errors:
                             print(f"Parso error: {error.message} at position {error.start_pos}")
+                        self.is_parso = True
                     except ImportError:
-                        print("parso not installed. Install with 'pip install parso' to enable partial parsing.")
+                        print("parso not installed. Install with 'pip install parso'")
                         return False
             else:
                 if self.language == 'javascript':
@@ -228,35 +283,18 @@ class ASTGenerator:
             
             print(f"AST (partial if errors) successfully generated and saved to '{output_path}'.")
 
-            # Analyze error line
-            problematic_line, full_def = self.get_code_context(file_path, error_line)
-            print(f"Problematic line: {problematic_line}")
-            if full_def:
-                print(f"Enclosing def: \n{full_def}")
-
-            if tree:
-                node = self.find_node_at_line(tree, error_line)
-                if node:
-                    print(f"AST Node at line {error_line}:")
-                    print(f"Node Type: {node['type']}")
-                    print(f"Line Range: {node['line_range']}")
-                    if 'value' in node:
-                        print(f"Node Value: {node['value']}")
-                    elif 'name' in node:
-                        print(f"Node Name: {node['name']}")
-
-            if errors:
-                print("Additional syntax errors detected:")
-                for error in errors:
-                    # Fixed: Use attributes instead of dict access
-                    msg = getattr(error, 'message', 'Unknown error')
-                    pos = getattr(error, 'start_pos', 'Unknown position')
-                    print(f"Error: {msg} at position {pos}")
+            # Show reconstructed code
+            code_lines = self.ast_to_code(ast_dict)
+            print("\nReconstructed code (line by line):")
+            for line in code_lines:
+                print(line)
 
             return True
 
         except Exception as e:
             print(f"Error generating AST: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return False
 
 def main():
