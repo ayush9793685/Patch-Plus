@@ -7,6 +7,7 @@ import ast
 import copy  # Added for deepcopy to prevent dict mutation/duplication
 import textwrap  # Added for dedent
 import parso  # Added for partial parsing on syntax errors
+import subprocess  # Added to call code_structure.py
 from io import StringIO
 from contextlib import redirect_stdout
 from difflib import SequenceMatcher  # Added for line change calculation (proxy for ∆Lk)
@@ -117,25 +118,22 @@ Output Format (JSON only):
   "impact": "Minimal",
   "confidence": 0.95  // Float 0-1
 }}"""
-def compute_consensus(responses: dict, problematic_line: str,exclude_model) -> dict:
-    responses_copy = copy.deepcopy(responses)
-    
-    valid_responses = {k: v for k, v in responses_copy.items() if 'error' not in v}
 
-    if exclude_model:
-        valid_responses = {k: v for k, v in valid_responses.items() if k != exclude_model}
+def compute_consensus(responses: dict, problematic_line: str, exclude_model=None) -> dict:
     """Compute consensus using Patch Selection Equation (multi-objective optimization)."""
     # Deep copy to prevent mutation
     responses_copy = copy.deepcopy(responses)
     
     valid_responses = {k: v for k, v in responses_copy.items() if 'error' not in v}
+    if exclude_model:
+        valid_responses = {k: v for k, v in valid_responses.items() if k != exclude_model}
     if not valid_responses:
         return {"error": "No valid responses", "responses": responses_copy, "original_code": problematic_line}
     
     # Extract candidates: ˆyk = fixed_code, x = problematic_line
     candidates = [(model, resp['fixed_code']) for model, resp in valid_responses.items() if 'fixed_code' in resp and resp['fixed_code'] != problematic_line]
     if not candidates:
-        candidates = [( 'no_fix', problematic_line )]  # Fallback
+        candidates = [('no_fix', problematic_line)]  # Fallback
     
     # Compute ∆Lk for each (lines changed proxy)
     delta_L = []
@@ -178,7 +176,6 @@ def compute_consensus(responses: dict, problematic_line: str,exclude_model) -> d
     
     return consensus
 
-
 def auto_fix_indent(temp_file: str, line_num: int, def_block: str | None, consensus_fixed_code: str) -> bool:
     """Auto-shift indentation on problematic line using AST context, test until parses."""
     if not def_block:
@@ -220,11 +217,62 @@ def auto_fix_indent(temp_file: str, line_num: int, def_block: str | None, consen
     print("Auto-indent failed after tries; keeping original.")
     return False
 
+def create_structure(original_file: str, structure_path: str = 'structure.json'):
+    """Call code_structure.py to create the nested JSON structure."""
+    cmd = ['python', 'code_structure.py', original_file, '--output', structure_path]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Error creating structure: {result.stderr}")
+        sys.exit(1)
+    print(f"Structure created: {structure_path}")
 
+def apply_fix_via_structure(structure_path: str, line_num: int, consensus_fixed_code: str, temp_file: str, target_indent: int = None):
+    """Load structure, replace line, rebuild and write to temp_file."""
+    # Load structure
+    with open(structure_path, 'r') as f:
+        structure = json.load(f)
+    
+    # Replace
+    structure = replace_line_in_structure(structure, line_num, consensus_fixed_code, target_indent)
+    
+    # Rebuild and save
+    code = rebuild_code_from_structure(structure)
+    with open(temp_file, 'w') as f:
+        f.write(code)
+    print(f"Applied structure fix to line {line_num} in {temp_file}")
+
+# Note: For brevity, inlining replace_line_in_structure and rebuild_code_from_structure here
+# (copy from code_structure.py; in production, import them)
+
+def replace_line_in_structure(structure: list, line_num: int, fixed_text: str, target_indent: int = None) -> list:
+    def recurse(nodes):
+        for node in nodes:
+            if node['line_num'] == line_num:
+                dedented = fixed_text.lstrip()
+                if target_indent is not None:
+                    node['indent'] = target_indent
+                    node['text'] = ' ' * target_indent + dedented.rstrip('\n')
+                else:
+                    node['text'] = fixed_text.rstrip('\n')
+                return True
+            if recurse(node.get('children', [])):
+                return True
+        return False
+    recurse(structure)
+    return structure
+
+def rebuild_code_from_structure(structure: list) -> str:
+    lines = []
+    def flatten(nodes):
+        for node in nodes:
+            lines.append(node['text'] + '\n')
+            flatten(node.get('children', []))
+    flatten(structure)
+    return ''.join(lines).rstrip('\n')
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python error_runner.py <path_to_python_file>")
+        print("Usage: python error.py <path_to_python_file>")
         sys.exit(1)
 
     original_file = sys.argv[1]
@@ -232,27 +280,37 @@ def main():
         print(f"Error: '{original_file}' is not a valid Python file.")
         sys.exit(1)
 
-    # Fixed: Use absolute path for temp_file
-    temp_file = os.path.join(os.path.abspath(os.path.dirname(original_file)), "temp_fixed.py")
-    fixed_file = "fixed_" + os.path.basename(original_file)
+    # FIXED: Use full abs path for original_file to ensure correct dirname
+    abs_original_file = os.path.abspath(original_file)
+    print(f"Absolute path of original file: {abs_original_file}")
+
+    # NEW: Create initial structure JSON
+    structure_path = os.path.join(os.path.dirname(abs_original_file), 'structure.json')
+    create_structure(abs_original_file, structure_path)
+
+    # FIXED: Use dirname of abs path for temp_file and fixed_file
+    temp_file = os.path.join(os.path.dirname(abs_original_file), "temp_fixed.py")
+    fixed_file = os.path.join(os.path.dirname(abs_original_file), "fixed_" + os.path.basename(original_file))
     max_iterations = 20  # Increased for longer loops
     iteration = 0
     has_issues = True  # Start assuming issues
     error_history = []  # Track last 2 errors for repetition detection
 
-    # Copy original to temp for looping
-    with open(original_file, 'r') as f:
-        code = f.read()
+    # Initial copy to temp from structure (but since structure is built, rebuild once)
+    with open(structure_path, 'r') as f:
+        structure = json.load(f)
+    initial_code = rebuild_code_from_structure(structure)
     with open(temp_file, 'w') as f:
-        f.write(code)
+        f.write(initial_code)
+    print(f"Initial temp file created at: {temp_file}")
 
     logic_checker = LogicChecker()
-    print("path:", os.path.abspath(temp_file))
+    print("path:", temp_file)
     while has_issues and iteration < max_iterations:
         iteration += 1
         print(f"\nIteration {iteration}: Checking {temp_file}")
 
-        # Run and fix errors
+        # Run and fix errors (UNCHANGED)
         success, error_output, line_num = run_code(temp_file)
         if not success:
             error_type, error_msg = parse_error(error_output, line_num)
@@ -270,7 +328,7 @@ def main():
                 if def_block:
                     print(f"\nEnclosing def: \n{def_block}")
                 
-                # Build and query all models for error fix
+                # Build and query all models for error fix (UNCHANGED)
                 prompt = build_fix_prompt(error_type, error_msg, line_num, problematic_line, def_block, temp_file)
                 print("\nQuerying multi-LLM for error fix...")
                 responses = query_all_models(prompt)
@@ -282,135 +340,24 @@ def main():
                             exclude_model = hist_model
                             print(f"Repeating error detected; excluding model: {exclude_model}")
                             break
-                consensus = compute_consensus(responses, problematic_line,exclude_model)
+                consensus = compute_consensus(responses, problematic_line, exclude_model)
                 
                 print("\nMulti-LLM Consensus for Error Fix (JSON):")
                 print(json.dumps(consensus, indent=2))
                 
-                # Apply the best patch to the problematic line using AST edit
+                # NEW: Apply fix via structure instead of old AST/string logic
                 if "consensus_fixed_code" in consensus:
                     consensus_fixed_code = consensus['consensus_fixed_code']
-                    # Dedent the fixed code to make it parsable as a standalone statement
-                    fixed_dedent = textwrap.dedent(consensus_fixed_code.lstrip())
-                    # Hack for control statements: add dummy body if ends with :
-                    if fixed_dedent.strip().endswith(':'):
-                        fixed_dedent += '\n    pass'
-                    fixed_node = None
-                    try:
-                        # Use parso for parsing fixed code to handle incomplete statements (e.g., for without body)
-                        grammar = parso.load_grammar()
-                        fixed_p = grammar.parse(fixed_dedent)
-                        fixed_stmt_p = fixed_p.children[0] if fixed_p.children else None
-                        print("Successfully parsed fixed code with parso.")
-                    except Exception as e:
-                        print(f"Failed to parse fixed code with parso: {e}")
-                        # Fallback to ast.parse (may fail for incomplete)
-                        try:
-                            fixed_tree = ast.parse(fixed_dedent)
-                            fixed_node = fixed_tree.body[0] if fixed_tree.body else None
-                        except SyntaxError as e2:
-                            print(f"Failed to parse fixed code with ast: {e2}")
-                            fixed_node = None
+                    target_indent = None  # Compute if needed, e.g., from def_block
+                    if def_block:
+                        # Simple heuristic: base +4
+                        base = len(def_block.splitlines()[0]) - len(def_block.splitlines()[0].lstrip())
+                        target_indent = base + 4
+                    apply_fix_via_structure(structure_path, line_num, consensus_fixed_code, temp_file, target_indent)
 
-                    if fixed_node is None:
-                        # Fallback to string replacement if fixed code can't be parsed
-                        with open(temp_file, 'r') as f:
-                            lines = f.readlines()
-                        lines[line_num - 1] = consensus_fixed_code + '\n'
-                        with open(temp_file, 'w') as f:
-                            f.write(''.join(lines))
-                        print(f"Applied fallback string fix to {temp_file}")
-                    else:
-                        # Attempt AST/parso-based fix
-                        print("Attempting AST-based fix...")
-                        with open(temp_file, 'r') as f:
-                            code = f.read()
-                        use_parso = False
-                        tree = None
-                        try:
-                            tree = ast.parse(code)
-                        except SyntaxError:
-                            use_parso = True
-                            grammar = parso.load_grammar()
-                            tree = grammar.parse(code)
-
-                        if not use_parso:
-                            # Use ast NodeTransformer to replace the node
-                            class Replacer(ast.NodeTransformer):
-                                def __init__(self, target_lineno, new_node):
-                                    self.target_lineno = target_lineno
-                                    self.new_node = new_node
-
-                                def generic_visit(self, node):
-                                    node = super().generic_visit(node)
-                                    if hasattr(node, 'lineno') and node.lineno == self.target_lineno:
-                                        ast.copy_location(self.new_node, node)
-                                        return self.new_node
-                                    return node
-
-                            replacer = Replacer(line_num, fixed_node)
-                            new_tree = replacer.visit(tree)
-                            ast.fix_missing_locations(new_tree)
-                            new_code = ast.unparse(new_tree)
-                            with open(temp_file, 'w') as f:
-                                f.write(new_code)
-                            print(f"Applied AST-based fix to {temp_file}")
-                        else:
-                            # Use parso for replacement on syntax-invalid code
-                            position = (line_num - 1, 0)  # 0-based line
-                            leaf = tree.get_leaf_for_position(position, include_prefixes=True)
-                            if leaf:
-                                stmt = leaf
-                                # Climb to the nearest statement node
-                                while stmt and stmt.type not in ('simple_stmt', 'expr_stmt', 'return_stmt', 'for_stmt', 'if_stmt', 'while_stmt', 'assign_stmt', 'annassign', 'augassign'):
-                                    stmt = stmt.parent
-                                if stmt:
-                                    fixed_p = grammar.parse(fixed_dedent, error_recovery=False)
-                                    fixed_stmt_p = fixed_p.children[0] if fixed_p.children else None
-                                    if fixed_stmt_p:
-                                        # Preserve original indentation(prefix)
-                                        prefix = stmt.get_first_leaf().prefix
-                                        fixed_first_leaf = fixed_stmt_p.get_first_leaf()
-                                        fixed_first_leaf.prefix = prefix
-                                        # Replace in parent
-                                        parent = stmt.parent
-                                        if parent and hasattr(parent, 'children'):
-                                            idx = parent.children.index(stmt)
-                                            parent.children[idx] = fixed_stmt_p
-                                            fixed_stmt_p.parent = parent
-                                        new_code = tree.get_code()
-                                        with open(temp_file, 'w') as f:
-                                            f.write(new_code)
-                                        print(f"Applied parso-based fix to {temp_file}")
-                                    else:
-                                        print("Failed to parse fixed stmt with parso; fallback to string fix.")
-                                        with open(temp_file, 'r') as f:
-                                            lines = f.readlines()
-                                        lines[line_num - 1] = consensus_fixed_code + '\n'
-                                        with open(temp_file, 'w') as f:
-                                            f.write(''.join(lines))
-                                        print(f"Applied fallback string fix to {temp_file}")
-                                else:
-                                    print("Could not find statement node; fallback to string fix.")
-                                    with open(temp_file, 'r') as f:
-                                        lines = f.readlines()
-                                    lines[line_num - 1] = consensus_fixed_code + '\n'
-                                    with open(temp_file, 'w') as f:
-                                        f.write(''.join(lines))
-                                    print(f"Applied fallback string fix to {temp_file}")
-                            else:
-                                print("Could not find leaf; fallback to string fix.")
-                                with open(temp_file, 'r') as f:
-                                    lines = f.readlines()
-                                lines[line_num - 1] = consensus_fixed_code + '\n'
-                                with open(temp_file, 'w') as f:
-                                    f.write(''.join(lines))
-                                print(f"Applied fallback string fix to {temp_file}")
-
-                    # New: Auto-fix indentation if IndentationError
-                    if 'indent' in error_msg.lower() or 'return outside function' in error_msg.lower():
-                        if auto_fix_indent(temp_file, line_num, def_block, consensus['consensus_fixed_code']):
-                            print("Indentation auto-fixed.")
+                    # OLD auto_fix_indent replaced by structure logic, but keep for fallback if needed
+                    # if 'indent' in error_msg.lower() or 'return outside function' in error_msg.lower():
+                    #     auto_fix_indent(temp_file, line_num, def_block, consensus['consensus_fixed_code'])
 
                     # Add to history for repetition check
                     error_key = f"{error_msg} | {problematic_line}"
@@ -424,7 +371,7 @@ def main():
                 print("Failed to analyze error with AST.")
                 break
         else:
-            # No errors; move to logic check
+            # No errors; move to logic check (UNCHANGED)
             print("\nNo runtime errors; starting logical check...")
             logic_result = logic_checker.full_logic_check(temp_file)
             
@@ -434,7 +381,7 @@ def main():
             # Check if logic issues remain (re_check_issues not empty or flagged_nodes > 0)
             has_logic_issues = len(logic_result.get('flagged_nodes', [])) > 0 or len(logic_result.get('re_check_issues', [])) > 0
             if has_logic_issues:
-                # Apply logic fixes
+                # Apply logic fixes (UNCHANGED, but could integrate structure if needed)
                 fixed_code = logic_result.get('fixed_code', temp_file)
                 with open(temp_file, 'w') as f:
                     f.write(fixed_code)
@@ -443,16 +390,15 @@ def main():
                 has_issues = False  # No more issues; exit loop
                 print("No logic issues found; final code ready.")
 
-    # Save final fixed code
+    # Save final fixed code (UNCHANGED)
     with open(temp_file, 'r') as f:
         final_code = f.read()
     with open(fixed_file, 'w') as f:
         f.write(final_code)
     print(f"\nFinal fixed code saved to: {fixed_file}")
     
-    # Clean up temp
+    # Clean up temp (UNCHANGED)
     os.remove(temp_file)
-
 
 if __name__ == "__main__":
     main()
