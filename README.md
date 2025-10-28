@@ -60,6 +60,7 @@ PatchPulse follows a lightweight client-server architecture for seamless integra
 </p>
 ---
 
+
 This project does amazing things...
 
 ## Quick Start
