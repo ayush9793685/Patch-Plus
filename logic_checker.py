@@ -6,11 +6,6 @@ from typing import Dict, List, Any, Optional
 from pymongo import MongoClient  # pip install pymongo
 from difflib import SequenceMatcher  # For ∆L and S_func proxy (string similarity as ROUGE/BLEU approx)
 from AST_TREE import ASTGenerator  # Your AST parser
-# Import your GenAI handlers
-from llama_handler import query_and_parse_json as query_llama
-from claude_handler import query_and_parse_json_claude as query_claude
-from gemini_handler import query_and_parse_json_gemini as query_gemini
-from Perplexity_handler import query_and_parse_json_perplexity as query_perplexity
 from model_handler import query_all_models
 
 # MongoDB setup (local default; change URI for prod)
