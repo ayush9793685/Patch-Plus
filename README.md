@@ -50,6 +50,18 @@ PatchPulse is an **AI-powered security platform** that combines vulnerability de
 - ⚡ **DevSecOps Integration** - CI/CD pipeline automation
 
 ---
+## Architecture
+
+PatchPulse follows a lightweight client-server architecture for seamless integration and scalable processing. The package side (embedded in your application) handles local detection and context gathering, while the server side performs heavy-lifting analysis and patch synthesis via multi-LLM consensus.
+
+# My Project
+
+<p align="center">
+  <img src="https://github.com/ayush9793685/Patch-Pulse/blob/sam/resources/Architecture.jpeg" alt="Banner" width="600">
+</p>
+
+## Overview
+This project does amazing things...
 
 ## Quick Start
 
