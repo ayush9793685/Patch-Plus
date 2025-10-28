@@ -58,7 +58,7 @@ PatchPulse follows a lightweight client-server architecture for seamless integra
 <p align="center">
   <img src="https://github.com/ayush9793685/Patch-Pulse/blob/sam/resources/Architecture.jpeg" alt="Banner" width="600">
 </p>
----
+
 
 
 This project does amazing things...
