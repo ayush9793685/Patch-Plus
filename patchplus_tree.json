@@ -1,0 +1,140 @@
+{
+  "name": "Project Root",
+  "path": "C:\\Users\\ayush\\OneDrive\\Documents\\Project Integrated chatbot",
+  "children": [
+    {
+      "name": "run.py",
+      "path": "dvpwa\\run.py",
+      "type": "file",
+      "imports": [
+        "sys",
+        "logging",
+        "aiohttp.web",
+        "sqli.app"
+      ],
+      "children": [
+        {
+          "name": "app.py",
+          "path": "dvpwa\\sqli\\app.py",
+          "type": "file",
+          "imports": [
+            "argparse",
+            "aiohttp.web",
+            "aiohttp_jinja2",
+            "jinja2.loaders",
+            "trafaret_config",
+            "sqli.middlewares",
+            "sqli.schema.config",
+            "sqli.services.db",
+            "sqli.services.redis",
+            "sqli.utils.jinja2",
+            "routes"
+          ],
+          "children": [
+            {
+              "name": "middlewares.py",
+              "path": "dvpwa\\sqli\\middlewares.py",
+              "type": "file",
+              "imports": [
+                "logging",
+                "aiohttp",
+                "aiohttp.web_exceptions",
+                "aiohttp_jinja2",
+                "aiohttp_session",
+                "aiohttp_session.redis_storage"
+              ],
+              "children": []
+            },
+            {
+              "name": "config.py",
+              "path": "dvpwa\\sqli\\schema\\config.py",
+              "type": "file",
+              "imports": [
+                "trafaret"
+              ],
+              "children": []
+            },
+            {
+              "name": "db.py",
+              "path": "dvpwa\\sqli\\services\\db.py",
+              "type": "file",
+              "imports": [
+                "aiopg",
+                "aiohttp.web"
+              ],
+              "children": []
+            },
+            {
+              "name": "redis.py",
+              "path": "dvpwa\\sqli\\services\\redis.py",
+              "type": "file",
+              "imports": [
+                "aioredis",
+                "aiohttp.web"
+              ],
+              "children": []
+            },
+            {
+              "name": "jinja2.py",
+              "path": "dvpwa\\sqli\\utils\\jinja2.py",
+              "type": "file",
+              "imports": [
+                "uuid",
+                "aiohttp_session",
+                "sqli.utils.auth"
+              ],
+              "children": [
+                {
+                  "name": "auth.py",
+                  "path": "dvpwa\\sqli\\utils\\auth.py",
+                  "type": "file",
+                  "imports": [
+                    "functools",
+                    "typing",
+                    "aiohttp.web",
+                    "aiohttp.web_exceptions",
+                    "aiohttp.web_request",
+                    "aiohttp_session",
+                    "sqli.dao.user"
+                  ],
+                  "children": [
+                    {
+                      "name": "user.py",
+                      "path": "dvpwa\\sqli\\dao\\user.py",
+                      "type": "file",
+                      "imports": [
+                        "hashlib",
+                        "typing",
+                        "aiopg"
+                      ],
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "routes.py",
+              "path": "dvpwa\\sqli\\routes.py",
+              "type": "file",
+              "imports": [
+                "os.path",
+                "aiohttp.web",
+                "sqli"
+              ],
+              "children": [
+                {
+                  "name": "__init__.py",
+                  "path": "dvpwa\\sqli\\__init__.py",
+                  "type": "file",
+                  "imports": [],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

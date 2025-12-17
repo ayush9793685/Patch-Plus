@@ -1,0 +1,16 @@
+entrypoints:
+  - dvpwa/run.py                  # DVPWA example
+  # - server.py
+  # - cli/main.py
+  # - workers/celery_worker.py
+
+exclude_dirs:
+  - __pycache__
+  - .git
+  - tests
+  - venv
+  - migrations
+
+exclude_files:
+  - test_*.py
+  - "*_test.py"

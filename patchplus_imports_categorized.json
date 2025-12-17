@@ -1,0 +1,16 @@
+{
+  "total_imports": 4,
+  "categorization": {
+    "aiohttp": "unknown",
+    "sqli": "unknown",
+    "sys": "unknown",
+    "logging": "unknown"
+  },
+  "project_internal_modules": [],
+  "public_modules": [
+    "aiohttp",
+    "sqli",
+    "sys",
+    "logging"
+  ]
+}
