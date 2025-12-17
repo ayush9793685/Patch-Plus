@@ -426,7 +426,7 @@ def main():
     print(f"Absolute path: {abs_original_file}")
 
     structure_path = os.path.join(os.path.dirname(abs_original_file), 'structure.json')
-    create_structure(abs_original_file, structure_path, lang)
+    create_structure(abs_original_file, structure_path)
 
     ext = '.' + lang.value if lang != Language.PYTHON else '.py'
     temp_file = os.path.join(os.path.dirname(abs_original_file), "temp_fixed" + ext)
@@ -451,7 +451,7 @@ def main():
 
         success, error_output, line_num = run_code(temp_file, lang)
         if not success:
-            error_type, error_msg = parse_error(error_output, line_num, lang)
+            error_type, error_msg = parse_error(error_output, line_num)
             if not error_type:
                 print("Could not parse error details.")
                 break
@@ -460,9 +460,9 @@ def main():
             print(f"Error Message: {error_msg}")
             print(f"Line Number: {line_num}")
 
-            context_success, problematic_line, enclosing = call_ast_generator(temp_file, line_num, lang)
+            context_success, problematic_line, enclosing = call_ast_generator(temp_file, line_num)
             if context_success:
-                prompt = build_fix_prompt(error_type, error_msg, line_num, problematic_line, enclosing, temp_file, lang)
+                prompt = build_fix_prompt(error_type, error_msg, line_num, problematic_line, enclosing, temp_file)
                 print("\nQuerying multi-LLM for error fix...")
                 responses = query_all_models(prompt)
                 exclude_model = None
@@ -491,10 +491,10 @@ def main():
                             target_indent = base + 4
                             print(f"Body line fix; target indent: {target_indent} (base {base} +4).")
                     
-                    apply_fix_via_structure(structure_path, line_num, consensus_fixed_code, temp_file, target_indent, lang)
+                    apply_fix_via_structure(structure_path, line_num, consensus_fixed_code, temp_file, target_indent)
                     
                     if lang == Language.PYTHON and any(keyword in error_msg.lower() for keyword in ['indent', 'expected an indented block', 'return outside function']):
-                        auto_fix_indent(temp_file, line_num, enclosing, consensus_fixed_code, lang)
+                        auto_fix_indent(temp_file, line_num, enclosing, consensus_fixed_code)
 
                     error_key = f"{error_msg} | {problematic_line}"
                     error_history.append((error_key, line_num, problematic_line, consensus.get('best_model', 'unknown')))

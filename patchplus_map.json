@@ -1,0 +1,7 @@
+{
+  "entrypoints": [
+    "dvpwa\\run.py"
+  ],
+  "graph": {},
+  "total_files": 1
+}
