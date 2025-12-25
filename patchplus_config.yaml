@@ -1,3 +1,4 @@
+#this project yaml file is designed for https://github.com/anxolerd/dvpwa application to use the application config file is needed to be changed for that certain application.the path on which it will work is needed to be same.
 entrypoints:
   - dvpwa/run.py                  # DVPWA example
   # - server.py
